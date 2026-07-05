@@ -209,7 +209,7 @@
       }
 
       .controls {
-        display: none;
+        display: flex;
         align-items: center;
         gap: 6px;
         pointer-events: auto;
@@ -888,6 +888,7 @@
       assets.city.src = ASSET_PATHS.city;
       assets.character.src = ASSET_PATHS.character;
       let audioContext;
+      let musicTimer = null;
 
       const PRODUCTS = [
         {
@@ -1053,7 +1054,7 @@
         lastTime: 0,
         distance: 0,
         speed: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 70 : 112,
-        mode: localStorage.getItem("ppai-roi-walk:mode") || "auto",
+        mode: "manual",
         muted: localStorage.getItem("ppai-roi-walk:muted") === "1",
         playerX: LANES[1],
         targetX: LANES[1],
@@ -1359,6 +1360,49 @@
         osc.stop(audio.currentTime + duration);
       }
 
+      function playMusicTone(frequency, startTime, duration, gainValue = 0.018, type = "sine") {
+        const audio = getAudioContext();
+        if (!audio) return;
+        const osc = audio.createOscillator();
+        const gain = audio.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(frequency, startTime);
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(gainValue, startTime + 0.08);
+        gain.gain.linearRampToValueAtTime(0, startTime + duration);
+        osc.connect(gain);
+        gain.connect(audio.destination);
+        osc.start(startTime);
+        osc.stop(startTime + duration + 0.04);
+      }
+
+      function scheduleMusicBar() {
+        if (state.muted || state.screen === "start") return;
+        const audio = getAudioContext();
+        if (!audio) return;
+        const start = audio.currentTime + 0.05;
+        const melody = [392, 440, 493.88, 440, 392, 329.63, 349.23, 392];
+        const bass = [196, 220, 164.81, 174.61];
+        melody.forEach((note, index) => {
+          playMusicTone(note, start + index * 0.38, 0.28, 0.012, "triangle");
+        });
+        bass.forEach((note, index) => {
+          playMusicTone(note, start + index * 0.76, 0.64, 0.01, "sine");
+        });
+      }
+
+      function startBackgroundMusic() {
+        if (state.muted || musicTimer) return;
+        scheduleMusicBar();
+        musicTimer = window.setInterval(scheduleMusicBar, 3040);
+      }
+
+      function stopBackgroundMusic() {
+        if (!musicTimer) return;
+        window.clearInterval(musicTimer);
+        musicTimer = null;
+      }
+
       function startGame() {
         state.screen = "play";
         state.distance = 0;
@@ -1371,6 +1415,7 @@
         state.stages = createStages();
         closeOverlay();
         syncChrome();
+        startBackgroundMusic();
         playBlip(520, 0.06);
       }
 
@@ -2015,9 +2060,6 @@
       function updateGame(dt) {
         if (state.screen !== "play" || state.paused) return;
 
-        const next = nextPendingStage();
-        if (next && state.mode === "auto") state.targetX = LANES[next.lane];
-
         state.distance += state.speed * dt;
         state.stepTick += dt * 8;
         state.playerX += (state.targetX - state.playerX) * clamp(dt * 6, 0, 1);
@@ -2606,6 +2648,14 @@
         state.targetX = LANES[nextIndex];
       }
 
+      function steerToPoint(point) {
+        if (state.screen !== "play" || state.paused) return;
+        const nearest = LANES.reduce((closest, lane) =>
+          Math.abs(lane - point.x) < Math.abs(closest - point.x) ? lane : closest,
+        );
+        state.targetX = nearest;
+      }
+
       canvas.addEventListener("pointerdown", (event) => {
         const point = canvasPoint(event);
         if (state.screen === "start" && inRect(point, START_BUTTON)) {
@@ -2617,12 +2667,12 @@
           advanceRules();
           return;
         }
-        if (state.screen === "play" && state.mode === "manual" && !state.paused) {
-          const nearest = LANES.reduce((closest, lane) =>
-            Math.abs(lane - point.x) < Math.abs(closest - point.x) ? lane : closest,
-          );
-          state.targetX = nearest;
-        }
+        steerToPoint(point);
+      });
+
+      canvas.addEventListener("pointermove", (event) => {
+        if (event.buttons !== 1) return;
+        steerToPoint(canvasPoint(event));
       });
 
       window.addEventListener("keydown", (event) => {
@@ -2631,7 +2681,7 @@
           renderStarterSetup();
         } else if (event.key === "Enter" && state.screen === "rules") {
           advanceRules();
-        } else if (state.screen === "play" && state.mode === "manual" && !state.paused) {
+        } else if (state.screen === "play" && !state.paused) {
           if (event.key === "ArrowLeft") moveLane(-1);
           if (event.key === "ArrowRight") moveLane(1);
         }
@@ -2644,7 +2694,12 @@
       soundButton.addEventListener("click", () => {
         state.muted = !state.muted;
         localStorage.setItem("ppai-roi-walk:muted", state.muted ? "1" : "0");
-        if (!state.muted) playBlip(680, 0.05);
+        if (state.muted) {
+          stopBackgroundMusic();
+        } else {
+          startBackgroundMusic();
+          playBlip(680, 0.05);
+        }
         syncChrome();
       });
 

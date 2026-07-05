@@ -3,25 +3,36 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#ffffff" />
-    <meta
-      name="description"
-      content="A tiny train dispatcher. Click anywhere to send a train chugging across the screen."
+    <meta name="theme-color" content="#051a2f" />
+      <meta
+        name="description"
+      content="A simple marketing ROI calculator for promotional products."
     />
-    <meta property="og:title" content="welcome to conductor" />
-    <meta property="og:description" content="Click anywhere to dispatch a train." />
+    <meta property="og:title" content="Marketing ROI Calculator" />
+      <meta
+        property="og:description"
+      content="A simple marketing ROI calculator for promotional products."
+    />
     <meta property="og:type" content="website" />
     <link rel="icon" type="image/png" href="./public/favicon.png" />
-    <title>welcome to conductor</title>
+    <title>Marketing ROI Calculator</title>
     <style>
       :root {
         color-scheme: light;
-        --ink: #151515;
-        --muted: #7a7a7a;
-        --faint: #d9d9d9;
-        --paper: #fbfbfa;
-        --panel: rgba(255, 255, 255, 0.72);
-        --accent: #111;
+        --ink: #111827;
+        --paper: #f5f7fb;
+        --navy: #043b63;
+        --deep: #051a2f;
+        --blue: #1598e6;
+        --teal: #13b7a6;
+        --coral: #f15b4a;
+        --gold: #f6c34a;
+        --green: #17a86b;
+        --purple: #7358d9;
+        --line: rgba(255, 255, 255, 0.28);
+        --panel: rgba(255, 255, 255, 0.94);
+        --shadow: 0 24px 60px rgba(3, 18, 32, 0.28);
+        --radius: 8px;
       }
 
       * {
@@ -36,386 +47,2610 @@
       body {
         margin: 0;
         overflow: hidden;
-        background: var(--paper);
+        background: #050505;
         color: var(--ink);
         font-family:
-          ui-sans-serif,
-          -apple-system,
-          BlinkMacSystemFont,
-          "SF Pro Text",
-          "Helvetica Neue",
-          Helvetica,
-          Arial,
-          sans-serif;
-        font-feature-settings: "kern";
+          ui-monospace,
+          "SFMono-Regular",
+          Menlo,
+          Monaco,
+          Consolas,
+          "Liberation Mono",
+          monospace;
+        letter-spacing: 0;
       }
 
-      main {
-        position: relative;
-        display: block;
-        width: 100vw;
-        min-height: 100svh;
-        overflow: hidden;
-        cursor: pointer;
-        user-select: none;
-        -webkit-tap-highlight-color: transparent;
+      button,
+      input,
+      select {
+        font: inherit;
+        letter-spacing: 0;
       }
 
-      .hero {
-        position: absolute;
+      .city {
+        position: fixed;
         inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+        background:
+          linear-gradient(180deg, rgba(3, 8, 16, 0.04), rgba(3, 8, 16, 0.28)),
+          url("./public/assets/backgrounds/ppai-headquarters-roadside-pixel.png") center bottom /
+            cover no-repeat,
+          #6da6d4;
+        image-rendering: pixelated;
+      }
+
+      .city::before,
+      .city::after {
+        position: absolute;
+        right: -4vw;
+        left: -4vw;
+        bottom: 0;
+        height: 47vh;
+        content: "";
+        image-rendering: pixelated;
+      }
+
+      .city::before {
+        background:
+          linear-gradient(#223e58, #223e58) 0 34% / 12% 66% no-repeat,
+          linear-gradient(#ff6b68, #ff6b68) 12% 14% / 13% 86% no-repeat,
+          linear-gradient(#f6f1c7, #f6f1c7) 25% 25% / 15% 75% no-repeat,
+          linear-gradient(#7ec8d8, #7ec8d8) 40% 9% / 10% 91% no-repeat,
+          linear-gradient(#da4057, #da4057) 50% 21% / 14% 79% no-repeat,
+          linear-gradient(#f0e7c9, #f0e7c9) 64% 0 / 16% 100% no-repeat,
+          linear-gradient(#3b5372, #3b5372) 80% 29% / 12% 71% no-repeat,
+          linear-gradient(#97d3ae, #97d3ae) 92% 18% / 13% 82% no-repeat;
+      }
+
+      .city::after {
+        bottom: 0;
+        height: 34vh;
+        background:
+          repeating-linear-gradient(
+              90deg,
+              transparent 0 22px,
+              rgba(5, 26, 47, 0.62) 22px 26px
+            )
+            0 34% / 100% 8px no-repeat,
+          repeating-linear-gradient(
+              90deg,
+              transparent 0 35px,
+              #092e4f 35px 52px,
+              transparent 52px 76px
+            )
+            0 50% / 100% 26px no-repeat,
+          linear-gradient(#3a3f47, #3a3f47) 0 100% / 100% 32px no-repeat;
+        opacity: 0.78;
+      }
+
+      .city::before,
+      .city::after {
+        display: none;
+      }
+
+      .app {
+        position: relative;
         display: grid;
+        min-height: 100svh;
         place-items: center;
-        gap: 18px;
-        padding: 32px;
-        text-align: center;
-        transition: opacity 600ms ease;
+        padding: 0;
+      }
+
+      .game-frame {
+        position: relative;
+        width: min(450px, 100vw, calc(100svh * 0.5625));
+        aspect-ratio: 9 / 16;
+        max-height: 100svh;
+        overflow: hidden;
+        border: 0;
+        border-radius: 0;
+        background: #000;
+        box-shadow: var(--shadow);
+      }
+
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+        touch-action: none;
+      }
+
+      .chrome {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        z-index: 5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        pointer-events: none;
+        transition:
+          opacity 180ms ease,
+          transform 180ms ease;
+      }
+
+      .chrome.is-hidden {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+
+      .chrome.is-hidden .controls {
         pointer-events: none;
       }
 
-      .hero.dispatched {
-        opacity: 0;
+      .hud {
+        display: inline-grid;
+        gap: 2px;
+        min-width: 0;
+        padding: 7px 9px;
+        border: 2px solid rgba(255, 255, 255, 0.9);
+        border-radius: 4px;
+        background: rgba(5, 26, 47, 0.84);
+        color: #fff;
+        box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.38);
+        text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.42);
       }
 
-      .hero-inner {
-        display: grid;
-        gap: 18px;
-        place-items: center;
+      .hud strong {
+        overflow: hidden;
+        max-width: 210px;
+        font-size: 13px;
+        line-height: 1.15;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
-      .train-emoji {
-        display: inline-block;
-        font-size: clamp(56px, 10vw, 96px);
-        line-height: 1;
-        transform-origin: 50% 60%;
+      .hud span {
+        font-size: 11px;
+      }
+
+      .controls {
+        display: none;
+        align-items: center;
+        gap: 6px;
         pointer-events: auto;
       }
 
-      .train-emoji:hover {
-        animation: wiggle 600ms ease-in-out;
+      .icon-button,
+      .mode-button {
+        min-height: 34px;
+        border: 2px solid #fff;
+        border-radius: 4px;
+        background: rgba(5, 26, 47, 0.82);
+        color: #fff;
+        box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.38);
+        cursor: pointer;
       }
 
-      .tagline {
-        max-width: 28ch;
-        color: var(--muted);
-        font-size: 14px;
-        font-weight: 450;
-        letter-spacing: 0;
-        line-height: 1.5;
+      .icon-button {
+        width: 36px;
+        padding: 0;
+        font-size: 13px;
       }
 
-      .train {
-        position: fixed;
-        left: 0;
-        z-index: 1;
-        font-size: clamp(38px, 6vw, 56px);
-        line-height: 1;
-        pointer-events: none;
-        animation-fill-mode: forwards;
-        animation-timing-function: linear;
-        will-change: transform;
+      .mode-switch {
+        display: flex;
+        overflow: hidden;
+        border: 2px solid #fff;
+        border-radius: 4px;
+        box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.38);
       }
 
-      .train.ltr {
-        animation-name: train-ltr;
+      .mode-button {
+        min-width: 58px;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+        font-size: 11px;
       }
 
-      .train.rtl {
-        animation-name: train-rtl;
+      .mode-button.active {
+        background: var(--gold);
+        color: #132033;
       }
 
-      .steam {
-        position: fixed;
-        z-index: 0;
-        color: #c9c9c7;
-        font-size: 18px;
-        pointer-events: none;
-        animation: puff 1400ms ease-out forwards;
-        will-change: transform, opacity;
+      .icon-button:focus-visible,
+      .mode-button:focus-visible,
+      .dialog button:focus-visible,
+      .dialog input:focus-visible,
+      .dialog select:focus-visible {
+        outline: 3px solid var(--gold);
+        outline-offset: 2px;
       }
 
-      .mute-toggle {
-        position: fixed;
-        top: 16px;
-        right: 16px;
-        z-index: 10;
-        display: inline-flex;
-        width: 38px;
-        height: 38px;
+      .overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 20;
+        display: none;
         align-items: center;
         justify-content: center;
-        border: 1px solid var(--faint);
-        border-radius: 999px;
-        background: var(--panel);
-        color: var(--ink);
-        cursor: pointer;
-        font-size: 16px;
-        backdrop-filter: blur(14px);
-        transition:
-          border-color 150ms ease,
-          background 150ms ease,
-          transform 150ms ease;
+        padding: 18px;
+        background: rgba(3, 10, 20, 0.62);
       }
 
-      .mute-toggle:hover {
-        background: #fff;
-        border-color: #b8b8b8;
+      .overlay.open {
+        display: flex;
+      }
+
+      .credits-link {
+        position: absolute;
+        right: 9px;
+        bottom: 7px;
+        z-index: 7;
+        color: rgba(255, 255, 255, 0.54);
+        font-size: 9px;
+        font-weight: 900;
+        line-height: 1;
+        text-decoration: none;
+        text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.65);
+      }
+
+      .credits-link:hover,
+      .credits-link:focus-visible {
+        color: #fff;
+      }
+
+      .dialog {
+        position: relative;
+        width: min(100%, 398px);
+        max-height: calc(100% - 22px);
+        overflow-x: hidden;
+        overflow-y: auto;
+        border: 4px solid #fff;
+        border-radius: 0;
+        background: #050505;
+        color: #fff;
+        box-shadow:
+          8px 8px 0 rgba(0, 0, 0, 0.72),
+          0 18px 45px rgba(3, 18, 32, 0.35);
+        clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+      }
+
+      .dialog-header {
+        display: grid;
+        gap: 4px;
+        padding: 16px 16px 12px;
+        border-bottom: 3px solid #fff;
+        background:
+          repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0 8px, transparent 8px 16px),
+          #101010;
+      }
+
+      .dialog-header.conversation {
+        gap: 0;
+      }
+
+      .speech-dialog {
+        overflow: visible;
+        border-color: #fff;
+        background: #050505;
+        clip-path: none;
+      }
+
+      .speech-dialog::after {
+        position: absolute;
+        bottom: -18px;
+        left: 46px;
+        width: 28px;
+        height: 28px;
+        border-right: 4px solid #fff;
+        border-bottom: 4px solid #fff;
+        background: #050505;
+        content: "";
+        transform: rotate(45deg);
+      }
+
+      .speaker-tag {
+        display: inline-flex;
+        width: max-content;
+        margin-bottom: 8px;
+        padding: 4px 9px;
+        border: 2px solid #fff;
+        background: var(--gold);
+        color: #111827;
+        font-size: 12px;
+        font-weight: 900;
+        line-height: 1;
+        text-transform: uppercase;
+      }
+
+      .eyebrow {
+        color: var(--gold);
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+
+      .dialog h2 {
+        margin: 0;
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        font-size: clamp(19px, 5vw, 26px);
+        line-height: 1.12;
+        letter-spacing: 0;
+        color: #fff;
+        text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.78);
+      }
+
+      .dialog p {
+        margin: 0;
+        color: #cbd5e1;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .dialog-body {
+        display: grid;
+        gap: 14px;
+        padding: 14px 16px 16px;
+      }
+
+      .field-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .setup-rules {
+        display: grid;
+        gap: 6px;
+        border: 2px solid #fff;
+        background: #111827;
+        padding: 10px;
+      }
+
+      .setup-rules strong {
+        color: var(--gold);
+        font-size: 12px;
+      }
+
+      .setup-rules p {
+        color: #e5edf7;
+        font-size: 11px;
+      }
+
+      .field {
+        display: grid;
+        gap: 6px;
+      }
+
+      .field-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .field label,
+      .field-row label {
+        color: #fff;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .value-pill {
+        min-width: 92px;
+        padding: 5px 8px;
+        border: 2px solid #fff;
+        border-radius: 0;
+        background: #111827;
+        color: var(--gold);
+        font-size: 12px;
+        font-weight: 900;
+        text-align: right;
+      }
+
+      input,
+      select {
+        width: 100%;
+        border: 2px solid #fff;
+        border-radius: 0;
+        background: #111827;
+        color: #fff;
+        min-height: 38px;
+        padding: 8px 10px;
+      }
+
+      input[type="range"] {
+        height: 30px;
+        min-height: 30px;
+        padding: 0;
+        accent-color: var(--blue);
+      }
+
+      .hint {
+        color: #aab6c7;
+        font-size: 11px;
+        line-height: 1.35;
+      }
+
+      .segmented {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+      }
+
+      .choice {
+        min-height: 38px;
+        border: 2px solid #fff;
+        border-radius: 0;
+        background: #111827;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .choice.active {
+        border-color: var(--gold);
+        background: var(--gold);
+        color: #111827;
+      }
+
+      .dialog-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        padding-top: 2px;
+      }
+
+      .primary,
+      .secondary {
+        min-height: 40px;
+        border: 3px solid #fff;
+        border-radius: 0;
+        padding: 8px 13px;
+        font-size: 12px;
+        font-weight: 900;
+        cursor: pointer;
+      }
+
+      .primary {
+        background: var(--gold);
+        color: #111827;
+        box-shadow:
+          4px 4px 0 rgba(0, 0, 0, 0.28),
+          inset 0 -3px 0 rgba(0, 0, 0, 0.12);
+      }
+
+      .secondary {
+        background: #111827;
+        color: #fff;
+      }
+
+      .store-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .product-card {
+        position: relative;
+        display: grid;
+        min-height: 76px;
+        gap: 5px;
+        border: 2px solid #fff;
+        border-radius: 0;
+        background: #111827;
+        padding: 8px;
+        color: #fff;
+        text-align: left;
+        cursor: pointer;
+        transition:
+          border-color 140ms ease,
+          transform 140ms ease,
+          box-shadow 140ms ease;
+      }
+
+      .product-card:hover {
+        border-color: #64748b;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.1);
         transform: translateY(-1px);
       }
 
-      .mute-toggle:focus-visible {
-        outline: 2px solid var(--accent);
-        outline-offset: 3px;
+      .product-card.selected {
+        border-color: var(--gold);
+        background: #1e293b;
+        box-shadow: inset 0 0 0 3px var(--gold);
       }
 
-      .counter {
-        position: fixed;
-        bottom: 16px;
-        left: 16px;
-        z-index: 10;
-        color: var(--muted);
-        font-size: 13px;
-        font-weight: 450;
+      .product-art {
+        display: grid;
+        width: 34px;
+        height: 30px;
+        place-items: center;
+        border: 2px solid #111827;
+        background: var(--swatch, var(--blue));
+        color: #fff;
+        font-size: 15px;
+        font-weight: 900;
+        box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.18);
+      }
+
+      .product-card strong {
+        font-size: 11px;
+        line-height: 1.1;
+      }
+
+      .product-card small {
+        color: #cbd5e1;
+        font-size: 9px;
+        line-height: 1.25;
+      }
+
+      .report {
+        width: min(100%, 414px);
+      }
+
+      .report .dialog-body {
+        gap: 10px;
+      }
+
+      .report .dialog-actions {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+      }
+
+      .report .dialog-actions .primary,
+      .report .dialog-actions .secondary {
+        flex: 1 1 118px;
+      }
+
+      .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 8px;
+      }
+
+      .metric {
+        display: grid;
+        gap: 4px;
+        border: 2px solid #fff;
+        border-radius: 0;
+        background: #111827;
+        padding: 10px;
+      }
+
+      .metric span {
+        color: #aab6c7;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+
+      .metric strong {
+        color: var(--gold);
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        font-size: clamp(20px, 5.6vw, 29px);
+        line-height: 1;
         letter-spacing: 0;
-        pointer-events: none;
       }
 
-      @keyframes wiggle {
-        0%,
-        100% {
-          transform: rotate(0);
-        }
-
-        25% {
-          transform: translateY(-4px) rotate(-6deg);
-        }
-
-        75% {
-          transform: translateY(-4px) rotate(6deg);
-        }
+      .section-title {
+        margin: 2px 0 -2px;
+        color: var(--gold);
+        font-size: 11px;
+        font-weight: 900;
+        text-transform: uppercase;
       }
 
-      @keyframes train-ltr {
-        from {
-          transform: translateX(-15vw) scaleX(-1);
-        }
-
-        to {
-          transform: translateX(115vw) scaleX(-1);
-        }
+      .insights,
+      .case-list,
+      .bar-list {
+        display: grid;
+        gap: 8px;
       }
 
-      @keyframes train-rtl {
-        from {
-          transform: translateX(115vw);
-        }
-
-        to {
-          transform: translateX(-15vw);
-        }
+      .insight,
+      .case-card,
+      .bar-card {
+        border: 2px solid #fff;
+        border-radius: 0;
+        background: #111827;
+        padding: 10px;
       }
 
-      @keyframes puff {
-        0% {
-          opacity: 0.7;
-          transform: translate(0, 0) scale(0.8);
+      .insight {
+        border-left: 5px solid var(--blue);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .insight strong {
+        color: var(--gold);
+      }
+
+      .case-card {
+        display: grid;
+        gap: 5px;
+      }
+
+      .case-card strong {
+        font-size: 12px;
+      }
+
+      .case-card span {
+        color: #7ee787;
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .case-card p {
+        font-size: 11px;
+      }
+
+      .bar-card {
+        display: grid;
+        gap: 6px;
+      }
+
+      .bar-row {
+        display: grid;
+        grid-template-columns: 92px 1fr 58px;
+        align-items: center;
+        gap: 8px;
+        font-size: 10px;
+        font-weight: 800;
+      }
+
+      .bar-track {
+        height: 14px;
+        overflow: hidden;
+        border: 2px solid #111827;
+        background: #eff4f8;
+      }
+
+      .bar-fill {
+        display: block;
+        height: 100%;
+        min-width: 4px;
+        background: var(--bar-color, var(--blue));
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      @media (max-width: 520px) {
+        body {
+          background: #050505;
         }
 
-        100% {
-          opacity: 0;
-          transform: translate(0, -40px) scale(1.4);
+        .game-frame {
+          width: 100vw;
+          height: 100svh;
+          max-height: none;
+          aspect-ratio: auto;
+          border: 0;
+          box-shadow: none;
+        }
+
+        .chrome {
+          top: 8px;
+          right: 56px;
+          left: 8px;
+        }
+
+        .mode-button {
+          width: 34px;
+          min-width: 34px;
+          font-size: 0;
+          padding: 0;
+        }
+
+        .mode-button::after {
+          font-size: 12px;
+        }
+
+        .mode-button[data-mode="manual"]::after {
+          content: "M";
+        }
+
+        .mode-button[data-mode="auto"]::after {
+          content: "A";
+        }
+
+        .icon-button {
+          width: 32px;
+          font-size: 10px;
+        }
+
+        .hud {
+          max-width: 168px;
+        }
+
+        .hud strong {
+          max-width: 170px;
+          font-size: 12px;
+        }
+
+        .hud span {
+          display: block;
+          max-width: 170px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .overlay {
+          padding: 12px;
+        }
+
+        .dialog {
+          max-height: calc(100% - 14px);
+        }
+
+        .store-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
       }
 
       @media (prefers-reduced-motion: reduce) {
-        .hero,
-        .train-emoji:hover {
-          animation: none;
-          transition: none;
-        }
-
-        .steam {
-          display: none;
-        }
-
-        .train.ltr,
-        .train.rtl {
-          left: 50%;
-          animation: fade-blip 1500ms ease both !important;
-        }
-
-        @keyframes fade-blip {
-          0% {
-            opacity: 0;
-            transform: translateX(-50%) scale(0.85);
-          }
-
-          20%,
-          80% {
-            opacity: 1;
-            transform: translateX(-50%) scale(1);
-          }
-
-          100% {
-            opacity: 0;
-            transform: translateX(-50%) scale(1);
-          }
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
         }
       }
     </style>
   </head>
   <body>
-    <main id="dispatcher">
-      <div class="hero" id="hero">
-        <div class="hero-inner">
-          <span class="train-emoji" role="img" aria-label="train">🚂</span>
-          <span class="tagline">Click anywhere to dispatch a train.</span>
+    <div class="city" aria-hidden="true"></div>
+    <main class="app">
+      <section class="game-frame" aria-label="Marketing ROI Calculator">
+        <canvas id="game" width="450" height="800"></canvas>
+
+        <div class="chrome" aria-hidden="false">
+          <div class="hud" aria-live="polite">
+            <strong id="stage-label">Marketing ROI Calculator</strong>
+            <span id="route-label">$10,000 - Drinkware</span>
+          </div>
+          <div class="controls">
+            <button class="icon-button" id="sound" type="button" title="Sound" aria-label="Sound">
+              ON
+            </button>
+          </div>
         </div>
-      </div>
 
-      <button
-        class="mute-toggle"
-        id="mute"
-        type="button"
-        aria-label="Mute"
-        aria-pressed="false"
-      >
-        🔊
-      </button>
+        <div class="overlay" id="overlay" aria-modal="true" role="dialog">
+          <div class="dialog" id="dialog"></div>
+        </div>
 
-      <div class="counter" id="counter" aria-live="polite">0 trains dispatched</div>
+        <a class="credits-link" href="./public/assets/licenses.md" target="_blank" rel="noreferrer">
+          Credits / Licenses
+        </a>
+      </section>
     </main>
 
+    <script src="./public/vendor/jspdf.umd.min.js"></script>
     <script>
-      const TRAIN_EMOJIS = ["🚂", "🚃", "🚅", "🚋", "🚄"];
-      const PUFF_CHARS = ["·", "°", "・", "∘"];
-      const LANE_COUNT = 5;
-      const DISPATCH_THROTTLE_MS = 120;
-      const PUFF_COUNT = 4;
-      const MIN_DURATION_MS = 4500;
-      const MAX_DURATION_MS = 7500;
+      const canvas = document.querySelector("#game");
+      const ctx = canvas.getContext("2d");
+      ctx.imageSmoothingEnabled = false;
+      const overlay = document.querySelector("#overlay");
+      const dialog = document.querySelector("#dialog");
+      const stageLabel = document.querySelector("#stage-label");
+      const routeLabel = document.querySelector("#route-label");
+      const soundButton = document.querySelector("#sound");
+      const modeButtons = Array.from(document.querySelectorAll("[data-mode]"));
+      const chromeBar = document.querySelector(".chrome");
 
-      const dispatcher = document.querySelector("#dispatcher");
-      const hero = document.querySelector("#hero");
-      const muteButton = document.querySelector("#mute");
-      const counter = document.querySelector("#counter");
-      const choo = new Audio("./public/choo-choo.mp3");
-      choo.preload = "auto";
+      const W = canvas.width;
+      const H = canvas.height;
+      const LANES = [130, 225, 320];
+      const PLAYER_Y = 632;
+      const START_BUTTON = { x: 82, y: 606, w: 286, h: 62 };
+      const RULE_BUTTON = { x: 112, y: 688, w: 226, h: 58 };
+      const RULES = [
+        "Choose what you want to give people.",
+        "Answer 3 quick questions.",
+      ];
+      const ASSET_PATHS = {
+        urban: "./public/assets/sprites/kenney-rpg-urban-pack.png",
+        city: "./public/assets/backgrounds/ppai-headquarters-roadside-pixel.png",
+        character: "./public/assets/sprites/freepik-character-blue.png",
+      };
+      const SHEET = {
+        tile: 16,
+        cols: 27,
+        characterCol: 23,
+      };
+      const assets = {
+        urban: new Image(),
+        city: new Image(),
+        character: new Image(),
+      };
+      assets.urban.src = ASSET_PATHS.urban;
+      assets.city.src = ASSET_PATHS.city;
+      assets.character.src = ASSET_PATHS.character;
+      let audioContext;
 
-      let count = 0;
-      let nextId = 1;
-      let lastDispatch = 0;
-      let lastLane = -1;
-      let lastDirection = "rtl";
-      let muted = localStorage.getItem("wtc:muted") === "1";
+      const PRODUCTS = [
+        {
+          id: "apparel",
+          name: "Apparel",
+          icon: "👕",
+          avgCost: 15,
+          avgImpressionsPerMonth: 140,
+          avgLifespanMonths: 14,
+          recallMultiplier: 1.3,
+          color: "#1598e6",
+        },
+        {
+          id: "drinkware",
+          name: "Drinkware",
+          icon: "☕",
+          avgCost: 8,
+          avgImpressionsPerMonth: 95,
+          avgLifespanMonths: 12,
+          recallMultiplier: 1.2,
+          color: "#13b7a6",
+        },
+        {
+          id: "bags",
+          name: "Totes",
+          icon: "👜",
+          avgCost: 12,
+          avgImpressionsPerMonth: 120,
+          avgLifespanMonths: 11,
+          recallMultiplier: 1.15,
+          color: "#f15b4a",
+        },
+        {
+          id: "writing",
+          name: "Pens",
+          icon: "✎",
+          avgCost: 3,
+          avgImpressionsPerMonth: 60,
+          avgLifespanMonths: 6,
+          recallMultiplier: 0.9,
+          color: "#7358d9",
+        },
+        {
+          id: "tech",
+          name: "Tech",
+          icon: "⚡",
+          avgCost: 18,
+          avgImpressionsPerMonth: 85,
+          avgLifespanMonths: 18,
+          recallMultiplier: 1.25,
+          color: "#043b63",
+        },
+        {
+          id: "desk",
+          name: "Desk",
+          icon: "▣",
+          avgCost: 10,
+          avgImpressionsPerMonth: 70,
+          avgLifespanMonths: 24,
+          recallMultiplier: 1.1,
+          color: "#17a86b",
+        },
+        {
+          id: "outdoor",
+          name: "Outdoor",
+          icon: "☀",
+          avgCost: 20,
+          avgImpressionsPerMonth: 100,
+          avgLifespanMonths: 36,
+          recallMultiplier: 1.2,
+          color: "#f6c34a",
+        },
+        {
+          id: "health",
+          name: "Health Kits",
+          icon: "+",
+          avgCost: 6,
+          avgImpressionsPerMonth: 50,
+          avgLifespanMonths: 8,
+          recallMultiplier: 1,
+          color: "#ef476f",
+        },
+      ];
 
-      function pick(items) {
-        return items[Math.floor(Math.random() * items.length)];
+      const INDUSTRIES = [
+        { id: "healthcare", name: "Healthcare", baseRecallRate: 0.72 },
+        { id: "education", name: "Education", baseRecallRate: 0.78 },
+        { id: "technology", name: "Technology", baseRecallRate: 0.68 },
+        { id: "retail", name: "Retail", baseRecallRate: 0.65 },
+        { id: "nonprofit", name: "Nonprofit", baseRecallRate: 0.8 },
+        { id: "finance", name: "Finance", baseRecallRate: 0.7 },
+        { id: "manufacturing", name: "Manufacturing", baseRecallRate: 0.66 },
+        { id: "hospitality", name: "Hospitality", baseRecallRate: 0.74 },
+      ];
+
+      const CHANNELS = {
+        promoProducts: { name: "Products", avgCPM: 0.6, color: "#1598e6" },
+        digitalAds: { name: "Digital", avgCPM: 7.5, color: "#7358d9" },
+        socialMedia: { name: "Social", avgCPM: 9, color: "#13b7a6" },
+        printAds: { name: "Print", avgCPM: 12, color: "#ef476f" },
+        tvAds: { name: "TV", avgCPM: 25, color: "#f6c34a" },
+      };
+
+      const SCENARIOS = {
+        conservative: 0.7,
+        average: 1,
+        aggressive: 1.4,
+      };
+
+      const CASE_LIBRARY = [
+        {
+          product: "drinkware",
+          industry: "technology",
+          title: "Drinkware for tech",
+          detail: "The cup stayed on desks and kept the brand visible.",
+        },
+        {
+          product: "tech",
+          industry: "technology",
+          title: "USB kit for tech",
+          detail: "People used the kit often, so the brand stayed visible.",
+        },
+        {
+          product: "bags",
+          industry: "retail",
+          title: "Tote bag for retail",
+          detail: "People carried the tote and showed the brand in public.",
+        },
+        {
+          product: "apparel",
+          industry: "hospitality",
+          title: "Apparel for events",
+          detail: "Staff wore the shirts and more people saw the brand.",
+        },
+        {
+          product: "desk",
+          industry: "finance",
+          title: "Desk gift for clients",
+          detail: "The gift sat on desks and reminded clients every day.",
+        },
+        {
+          product: "health",
+          industry: "healthcare",
+          title: "Wellness kit for patients",
+          detail: "Patients kept the kit and saw the message again.",
+        },
+        {
+          product: "writing",
+          industry: "education",
+          title: "Pens for schools",
+          detail: "Students kept the pens after the visit.",
+        },
+        {
+          product: "outdoor",
+          industry: "nonprofit",
+          title: "Outdoor gift for donors",
+          detail: "Donors kept the gift and remembered the cause.",
+        },
+      ];
+
+      const state = {
+        screen: "start",
+        lastTime: 0,
+        distance: 0,
+        speed: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 70 : 112,
+        mode: localStorage.getItem("ppai-roi-walk:mode") || "auto",
+        muted: localStorage.getItem("ppai-roi-walk:muted") === "1",
+        playerX: LANES[1],
+        targetX: LANES[1],
+        stepTick: 0,
+        ruleIndex: 0,
+        paused: false,
+        stages: [],
+        activeStage: null,
+        hitPulse: 0,
+      };
+
+      const campaign = {
+        annualBudget: 60000,
+        budget: 10000,
+        quantity: 500,
+        productCategoryId: "drinkware",
+        industryId: "technology",
+        lifespanMonths: 12,
+        impressionsPerMonth: 95,
+        scenario: "average",
+        goal: "Brand awareness",
+        audience: "Customers",
+      };
+
+      function createStages() {
+        return [
+          {
+            id: "store",
+            kind: "store",
+            lane: 1,
+            worldY: 520,
+            person: "Sam",
+            headline: "Store",
+            note: "Hey, what would you like to give your customers?",
+          },
+          {
+            id: "audience",
+            kind: "person",
+            lane: 2,
+            worldY: 1080,
+            person: "Mia",
+            headline: "Audience",
+            note: "Who is the target audience?",
+          },
+          {
+            id: "lifespan",
+            kind: "person",
+            lane: 0,
+            worldY: 1640,
+            person: "Nina",
+            headline: "Lifespan",
+            note: "How long do you want them to keep it?",
+          },
+          {
+            id: "campaignType",
+            kind: "person",
+            lane: 1,
+            worldY: 2220,
+            person: "Omar",
+            headline: "Campaign",
+            note: "What kind of campaign is this?",
+          },
+          {
+            id: "finish",
+            kind: "finish",
+            lane: 1,
+            worldY: 2800,
+            person: "Report",
+          },
+        ];
       }
 
-      function syncMuteButton() {
-        muteButton.textContent = muted ? "🔇" : "🔊";
-        muteButton.setAttribute("aria-label", muted ? "Unmute" : "Mute");
-        muteButton.setAttribute("aria-pressed", String(muted));
-        localStorage.setItem("wtc:muted", muted ? "1" : "0");
+      function productById(id) {
+        return PRODUCTS.find((product) => product.id === id) || PRODUCTS[0];
       }
 
-      function updateCounter() {
-        const noun = count === 1 ? "train" : "trains";
-        counter.textContent = `${count} ${noun} dispatched`;
-        document.title =
-          count === 0 ? "welcome to conductor" : `welcome to conductor (${count})`;
+      function industryById(id) {
+        return INDUSTRIES.find((industry) => industry.id === id) || INDUSTRIES[0];
       }
 
-      function playChoo() {
-        if (muted) return;
-        const node = choo.cloneNode(true);
-        node.volume = 0.28;
-        node.play().catch(() => {});
+      function formatCurrency(value) {
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          maximumFractionDigits: 0,
+        }).format(Number(value) || 0);
       }
 
-      function removeNode(event) {
-        event.currentTarget.remove();
+      function formatCompact(value) {
+        if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+        if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
+        return Math.round(value).toLocaleString();
       }
 
-      function createSteam(train, delay) {
-        window.setTimeout(() => {
-          const elapsed = performance.now() - train.startedAt;
-          const progress = Math.min(elapsed / train.durationMs, 1);
-          const puff = document.createElement("span");
-          const x =
-            train.direction === "ltr"
-              ? -15 + 130 * progress
-              : 115 - 130 * progress;
-
-          puff.className = "steam";
-          puff.textContent = pick(PUFF_CHARS);
-          puff.style.left = `${x}vw`;
-          puff.style.top = `${10 + train.lane * 16}vh`;
-          puff.addEventListener("animationend", removeNode, { once: true });
-          dispatcher.append(puff);
-        }, delay);
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
       }
 
-      function dispatchTrain() {
-        const now = performance.now();
-        if (now - lastDispatch < DISPATCH_THROTTLE_MS) return;
-        lastDispatch = now;
+      function roundTo(value, step) {
+        return Math.max(step, Math.round(value / step) * step);
+      }
 
-        let lane = Math.floor(Math.random() * LANE_COUNT);
-        if (lane === lastLane) lane = (lane + 1) % LANE_COUNT;
-        lastLane = lane;
+      function htmlEscape(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;");
+      }
 
-        const direction = lastDirection === "ltr" ? "rtl" : "ltr";
-        lastDirection = direction;
+      function renderBold(text) {
+        return htmlEscape(text)
+          .replaceAll("**", "\u0000")
+          .split("\u0000")
+          .map((part, index) => (index % 2 ? `<strong>${part}</strong>` : part))
+          .join("");
+      }
 
-        const durationMs =
-          MIN_DURATION_MS + Math.random() * (MAX_DURATION_MS - MIN_DURATION_MS);
-        const train = {
-          id: nextId++,
-          lane,
-          direction,
-          durationMs,
-          startedAt: now,
+      function calculateMetrics(input) {
+        const product = productById(input.productCategoryId);
+        const industry = industryById(input.industryId);
+        const scenarioMultiplier = SCENARIOS[input.scenario] || 1;
+        const totalImpressions = Math.round(
+          input.quantity *
+            input.impressionsPerMonth *
+            input.lifespanMonths *
+            scenarioMultiplier,
+        );
+        const costPerImpression = totalImpressions > 0 ? input.budget / totalImpressions : 0;
+        const costPerThousandImpressions = costPerImpression * 1000;
+        const brandRecallScore = Math.min(
+          100,
+          Math.round(
+            industry.baseRecallRate *
+              product.recallMultiplier *
+              100 *
+              (scenarioMultiplier * 0.9 + 0.1),
+          ),
+        );
+        const longevityValue = Math.round(totalImpressions * (input.lifespanMonths / 12));
+        const effectiveROI =
+          costPerThousandImpressions > 0
+            ? Math.round(
+                ((CHANNELS.digitalAds.avgCPM - costPerThousandImpressions) /
+                  costPerThousandImpressions) *
+                  100,
+              )
+            : 0;
+        return {
+          totalImpressions,
+          costPerImpression,
+          costPerThousandImpressions,
+          brandRecallScore,
+          longevityValue,
+          effectiveROI,
+          impressionsOverTime: buildImpressionsOverTime(input, scenarioMultiplier),
+          channelComparison: [
+            {
+              name: "Products",
+              cpm: costPerThousandImpressions,
+              color: CHANNELS.promoProducts.color,
+            },
+            { name: "Digital", cpm: CHANNELS.digitalAds.avgCPM, color: CHANNELS.digitalAds.color },
+            { name: "Social", cpm: CHANNELS.socialMedia.avgCPM, color: CHANNELS.socialMedia.color },
+            { name: "Print", cpm: CHANNELS.printAds.avgCPM, color: CHANNELS.printAds.color },
+            { name: "TV", cpm: CHANNELS.tvAds.avgCPM, color: CHANNELS.tvAds.color },
+          ],
         };
+      }
 
-        const trainNode = document.createElement("span");
-        trainNode.className = `train ${direction}`;
-        trainNode.textContent = pick(TRAIN_EMOJIS);
-        trainNode.style.top = `${10 + lane * 16}vh`;
-        trainNode.style.animationDuration = `${durationMs}ms`;
-        trainNode.addEventListener("animationend", removeNode, { once: true });
-        dispatcher.append(trainNode);
+      function buildImpressionsOverTime(input, scenarioMultiplier) {
+        const data = [];
+        let cumulative = 0;
+        for (let month = 1; month <= Math.min(input.lifespanMonths, 24); month += 1) {
+          const retention = 1 - (month / input.lifespanMonths) * 0.3;
+          const impressions = Math.round(
+            input.quantity * input.impressionsPerMonth * retention * scenarioMultiplier,
+          );
+          cumulative += impressions;
+          data.push({ month, impressions, cumulative });
+        }
+        return data;
+      }
 
-        count += 1;
-        hero.classList.add("dispatched");
-        updateCounter();
-        playChoo();
+      function getInsights(input, metrics) {
+        const product = productById(input.productCategoryId);
+        const insights = [];
+        const impressionRatio = CHANNELS.digitalAds.avgCPM / metrics.costPerThousandImpressions;
 
-        for (let i = 0; i < PUFF_COUNT; i += 1) {
-          createSteam(train, (durationMs / (PUFF_COUNT + 1)) * (i + 1));
+        if (impressionRatio > 1) {
+          insights.push(
+            `${product.name} gets **${impressionRatio.toFixed(
+              1,
+            )}x more views** than digital ads.`,
+          );
+        }
+
+        if (input.lifespanMonths >= 12) {
+          insights.push(
+            `This product lasts **${input.lifespanMonths} months**.`,
+          );
+        }
+
+        if (metrics.brandRecallScore >= 75) {
+          insights.push(
+            `${metrics.brandRecallScore}% of people may **remember the brand**.`,
+          );
+        } else if (metrics.brandRecallScore >= 60) {
+          insights.push(
+            `${metrics.brandRecallScore}% of people may **remember it**.`,
+          );
+        }
+
+        if (metrics.effectiveROI > 500) {
+          insights.push(
+            `Cost is **$${metrics.costPerThousandImpressions.toFixed(
+              2,
+            )} per 1,000 views**.`,
+          );
+        }
+
+        if (metrics.totalImpressions >= 1000000) {
+          insights.push(
+            `Total views: **${(metrics.totalImpressions / 1000000).toFixed(
+              1,
+            )} million**.`,
+          );
+        } else if (metrics.totalImpressions >= 100000) {
+          insights.push(
+            `Total views: **${(metrics.totalImpressions / 1000).toFixed(
+              0,
+            )}K**.`,
+          );
+        }
+
+        return insights.slice(0, 3);
+      }
+
+      function getCaseStudies(input, metrics) {
+        const selected = productById(input.productCategoryId);
+        const industry = industryById(input.industryId);
+        const ranked = CASE_LIBRARY.map((study) => {
+          let score = 0;
+          if (study.product === selected.id) score += 6;
+          if (study.industry === industry.id) score += 3;
+          if (study.title.toLowerCase().includes(input.goal.toLowerCase().split(" ")[0])) score += 1;
+          return { ...study, score };
+        }).sort((a, b) => b.score - a.score);
+
+        return ranked.slice(0, 2).map((study) => ({
+          ...study,
+          result: `${formatCompact(metrics.totalImpressions)} views. $${metrics.costPerThousandImpressions.toFixed(2)} per 1,000 views.`,
+        }));
+      }
+
+      function syncChrome() {
+        const product = productById(campaign.productCategoryId);
+        const completed = state.stages.filter((stage) => stage.done && stage.kind !== "finish").length;
+        const totalStops = state.stages.filter((stage) => stage.kind !== "finish").length || 5;
+        document.body.dataset.screen = state.screen;
+        chromeBar.classList.toggle("is-hidden", state.screen !== "play");
+        stageLabel.textContent =
+          state.screen === "play"
+            ? `${completed}/${totalStops} stops - ${nextStageLabel()}`
+            : state.screen === "report"
+              ? "ROI Report"
+              : "Marketing ROI Calculator";
+        routeLabel.textContent = `${formatCurrency(campaign.budget)} - ${product.name}`;
+        soundButton.textContent = state.muted ? "OFF" : "ON";
+        soundButton.setAttribute("aria-pressed", String(!state.muted));
+        modeButtons.forEach((button) => {
+          const active = button.dataset.mode === state.mode;
+          button.classList.toggle("active", active);
+          button.setAttribute("aria-pressed", String(active));
+        });
+      }
+
+      function nextStageLabel() {
+        const next = state.stages.find((stage) => !stage.done);
+        return next ? next.person : "Report";
+      }
+
+      function getAudioContext() {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return null;
+        if (!audioContext) audioContext = new AudioContext();
+        if (audioContext.state === "suspended") audioContext.resume();
+        return audioContext;
+      }
+
+      function playBlip(frequency = 420, duration = 0.08) {
+        if (state.muted) return;
+        const audio = getAudioContext();
+        if (!audio) return;
+        const osc = audio.createOscillator();
+        const gain = audio.createGain();
+        osc.frequency.value = frequency;
+        osc.type = "square";
+        gain.gain.value = 0.035;
+        osc.connect(gain);
+        gain.connect(audio.destination);
+        osc.start();
+        osc.stop(audio.currentTime + duration);
+      }
+
+      function startGame() {
+        state.screen = "play";
+        state.distance = 0;
+        state.playerX = LANES[1];
+        state.targetX = LANES[1];
+        state.ruleIndex = 0;
+        state.paused = false;
+        state.activeStage = null;
+        state.hitPulse = 0;
+        state.stages = createStages();
+        closeOverlay();
+        syncChrome();
+        playBlip(520, 0.06);
+      }
+
+      function showRules() {
+        normalizeCampaign();
+        closeOverlay();
+        state.screen = "rules";
+        state.ruleIndex = 0;
+        syncChrome();
+        playBlip(520, 0.05);
+      }
+
+      function advanceRules() {
+        if (state.ruleIndex < RULES.length - 1) {
+          state.ruleIndex += 1;
+          playBlip(560, 0.05);
+        } else {
+          startGame();
         }
       }
 
-      dispatcher.addEventListener("click", dispatchTrain);
-      muteButton.addEventListener("click", (event) => {
-        event.stopPropagation();
-        muted = !muted;
-        syncMuteButton();
+      function setMode(mode) {
+        state.mode = mode;
+        localStorage.setItem("ppai-roi-walk:mode", mode);
+        syncChrome();
+      }
+
+      function closeOverlay() {
+        overlay.classList.remove("open");
+        overlay.setAttribute("aria-hidden", "true");
+        dialog.innerHTML = "";
+        dialog.className = "dialog";
+      }
+
+      function openOverlay() {
+        overlay.classList.add("open");
+        overlay.setAttribute("aria-hidden", "false");
+      }
+
+      function triggerStage(stage) {
+        state.paused = true;
+        state.activeStage = stage;
+        state.hitPulse = 1;
+        playBlip(stage.kind === "store" ? 360 : 620, 0.09);
+
+        if (stage.kind === "finish") {
+          stage.done = true;
+          renderReport();
+          return;
+        }
+
+        renderStageDialog(stage);
+      }
+
+      function completeStage(stage) {
+        normalizeCampaign();
+        stage.done = true;
+        state.paused = false;
+        state.activeStage = null;
+        closeOverlay();
+        syncChrome();
+        playBlip(740, 0.05);
+      }
+
+      function normalizeCampaign() {
+        campaign.annualBudget = Math.max(1000, Number(campaign.annualBudget) || 1000);
+        campaign.budget = Math.max(500, Number(campaign.budget) || 500);
+        if (campaign.annualBudget < campaign.budget) campaign.annualBudget = campaign.budget;
+        campaign.quantity = clamp(roundTo(Number(campaign.quantity) || 50, 50), 50, 10000);
+        campaign.lifespanMonths = clamp(Number(campaign.lifespanMonths) || 1, 1, 60);
+        campaign.impressionsPerMonth = clamp(Number(campaign.impressionsPerMonth) || 10, 10, 300);
+      }
+
+      function setProduct(productId, updateQuantity = false) {
+        const product = productById(productId);
+        campaign.productCategoryId = product.id;
+        campaign.lifespanMonths = product.avgLifespanMonths;
+        campaign.impressionsPerMonth = product.avgImpressionsPerMonth;
+        if (!updateQuantity) return;
+        campaign.quantity = clamp(roundTo(campaign.budget / product.avgCost, 50), 50, 10000);
+      }
+
+      function applyProduct(productId) {
+        setProduct(productId, false);
+      }
+
+      function renderStarterSetup() {
+        dialog.className = "dialog";
+        openOverlay();
+        dialog.innerHTML = `
+          <div class="dialog-body">
+            <div class="setup-rules">
+              <strong>What happens next</strong>
+              <p>Take a quick 30-second virtual walk outside PPAI's headquarters to calculate your marketing ROI.</p>
+            </div>
+            <div class="field-grid">
+              ${selectField(
+                "industryId",
+                "What industry are you in?",
+                campaign.industryId,
+                INDUSTRIES.map((industry) => [industry.id, industry.name]),
+              )}
+              ${numberField("budget", "What's your marketing budget?", campaign.budget, 500, 100000, 500, true)}
+            </div>
+            <div class="dialog-actions">
+              <button class="primary" type="button" data-action="continue">Start</button>
+            </div>
+          </div>
+        `;
+        bindSetupFields();
+      }
+
+      function renderStageDialog(stage) {
+        dialog.className = "dialog speech-dialog";
+        openOverlay();
+
+        if (stage.id === "store") {
+          renderStoreDialog(stage);
+          return;
+        } else if (stage.id === "audience") {
+          dialog.innerHTML = conversationShell(
+            "Mia",
+            "Who should receive these?",
+            `
+              ${selectField("audience", "Target audience", campaign.audience, [
+                ["Customers", "Customers"],
+                ["Prospects", "Prospects"],
+                ["Employees", "Employees"],
+                ["Members", "Members"],
+                ["Donors", "Donors"],
+                ["Students", "Students"],
+              ])}
+            `,
+            "Next",
+          );
+        } else if (stage.id === "lifespan") {
+          const product = productById(campaign.productCategoryId);
+          dialog.innerHTML = conversationShell(
+            "Nina",
+            `How long should people keep the ${product.name.toLowerCase()}?`,
+            `
+              ${numberField("lifespanMonths", "Months", campaign.lifespanMonths, 1, 60, 1, false, "months")}
+            `,
+            "Next",
+          );
+        } else if (stage.id === "campaignType") {
+          dialog.innerHTML = conversationShell(
+            "Omar",
+            "What kind of campaign is this for?",
+            `
+              ${selectField("goal", "Campaign type", campaign.goal, [
+                ["Brand awareness", "Brand awareness"],
+                ["Lead generation", "Lead generation"],
+                ["Customer retention", "Customer retention"],
+                ["Event traffic", "Event traffic"],
+              ])}
+            `,
+            "Show report",
+          );
+        }
+
+        bindDialogFields(stage);
+      }
+
+      function dialogShell(eyebrow, title, note, fields, actionLabel) {
+        return `
+          <div class="dialog-header">
+            <span class="eyebrow">${eyebrow}</span>
+            <h2>${title}</h2>
+            <p>${note}</p>
+          </div>
+          <div class="dialog-body">
+            <div class="field-grid">${fields}</div>
+            <div class="dialog-actions">
+              <button class="primary" type="button" data-action="continue">${actionLabel}</button>
+            </div>
+          </div>
+        `;
+      }
+
+      function conversationShell(speaker, question, fields, actionLabel) {
+        return `
+          <div class="dialog-header conversation">
+            <span class="speaker-tag">${speaker}</span>
+            <h2>${question}</h2>
+          </div>
+          <div class="dialog-body">
+            <div class="field-grid">${fields}</div>
+            <div class="dialog-actions">
+              <button class="primary" type="button" data-action="continue">${actionLabel}</button>
+            </div>
+          </div>
+        `;
+      }
+
+      function numberField(key, label, value, min, max, step, money, suffix = "") {
+        const display = money ? formatCurrency(value) : `${Number(value).toLocaleString()}${suffix ? ` ${suffix}` : ""}`;
+        return `
+          <div class="field" data-field-wrap="${key}">
+            <div class="field-row">
+              <label for="${key}">${label}</label>
+              <span class="value-pill" data-value-for="${key}">${display}</span>
+            </div>
+            <input
+              id="${key}"
+              data-field="${key}"
+              data-money="${money ? "1" : "0"}"
+              data-suffix="${suffix}"
+              type="range"
+              min="${min}"
+              max="${max}"
+              step="${step}"
+              value="${value}"
+            />
+            <input
+              aria-label="${label} exact value"
+              data-field="${key}"
+              data-money="${money ? "1" : "0"}"
+              data-suffix="${suffix}"
+              type="number"
+              min="${min}"
+              max="${max}"
+              step="${step}"
+              value="${value}"
+            />
+          </div>
+        `;
+      }
+
+      function selectField(key, label, value, options) {
+        return `
+          <div class="field">
+            <label for="${key}">${label}</label>
+            <select id="${key}" data-field="${key}">
+              ${options
+                .map(
+                  ([optionValue, optionLabel]) =>
+                    `<option value="${optionValue}" ${optionValue === value ? "selected" : ""}>${optionLabel}</option>`,
+                )
+                .join("")}
+            </select>
+          </div>
+        `;
+      }
+
+      function scenarioField() {
+        return `
+          <div class="field">
+            <label>Estimate</label>
+            <div class="segmented">
+              ${Object.keys(SCENARIOS)
+                .map(
+                  (scenario) => `
+                    <button
+                      class="choice ${campaign.scenario === scenario ? "active" : ""}"
+                      type="button"
+                      data-scenario="${scenario}"
+                    >
+                      ${scenario === "conservative" ? "Low" : scenario === "average" ? "Normal" : "High"}
+                    </button>
+                  `,
+                )
+                .join("")}
+            </div>
+            <span class="hint">This changes the estimate.</span>
+          </div>
+        `;
+      }
+
+      function updateCampaignField(field) {
+        const key = field.dataset.field;
+        const value = field.type === "number" || field.type === "range" ? Number(field.value) : field.value;
+        if (key === "productCategoryId") {
+          setProduct(value, false);
+        } else {
+          campaign[key] = value;
+        }
+        syncMirroredFields(key, field);
+        syncChrome();
+      }
+
+      function bindSetupFields() {
+        dialog.querySelectorAll("[data-field]").forEach((field) => {
+          field.addEventListener("input", () => updateCampaignField(field));
+          field.addEventListener("change", () => updateCampaignField(field));
+        });
+
+        dialog.querySelector("[data-action='continue']")?.addEventListener("click", startGame);
+      }
+
+      function bindDialogFields(stage) {
+        dialog.querySelectorAll("[data-field]").forEach((field) => {
+          field.addEventListener("input", () => {
+            updateCampaignField(field);
+          });
+          field.addEventListener("change", () => {
+            updateCampaignField(field);
+          });
+        });
+
+        dialog.querySelectorAll("[data-scenario]").forEach((button) => {
+          button.addEventListener("click", () => {
+            campaign.scenario = button.dataset.scenario;
+            renderStageDialog(stage);
+          });
+        });
+
+        dialog.querySelector("[data-action='continue']")?.addEventListener("click", () => {
+          completeStage(stage);
+        });
+      }
+
+      function syncMirroredFields(key, source) {
+        dialog.querySelectorAll(`[data-field="${key}"]`).forEach((field) => {
+          if (field !== source) field.value = source.value;
+        });
+        const pill = dialog.querySelector(`[data-value-for="${key}"]`);
+        if (!pill) return;
+        const value = Number(source.value);
+        const isMoney = source.dataset.money === "1";
+        const suffix = source.dataset.suffix || "";
+        pill.textContent = isMoney
+          ? formatCurrency(value)
+          : `${value.toLocaleString()}${suffix ? ` ${suffix}` : ""}`;
+      }
+
+      function renderStoreDialog(stage, afterComplete) {
+        const product = productById(campaign.productCategoryId);
+        dialog.className = "dialog";
+        openOverlay();
+        dialog.innerHTML = `
+          <div class="dialog-header conversation">
+            <h2>Sam: what would you like to give your customers?</h2>
+          </div>
+          <div class="dialog-body">
+            <div class="store-grid">
+              ${PRODUCTS.map((item) => {
+                return `
+                  <button
+                    class="product-card ${item.id === product.id ? "selected" : ""}"
+                    type="button"
+                    data-product="${item.id}"
+                  >
+                    <span class="product-art" style="--swatch: ${item.color}">${item.icon}</span>
+                    <strong>${item.name}</strong>
+                  </button>
+                `;
+              }).join("")}
+            </div>
+            ${numberField("quantity", "Do you have a desired quantity?", campaign.quantity, 50, 10000, 50, false)}
+            <p class="hint">Okay, ${product.name} is selected.</p>
+            <div class="dialog-actions">
+              <button class="primary" type="button" data-action="continue">Done</button>
+            </div>
+          </div>
+        `;
+
+        dialog.querySelectorAll("[data-product]").forEach((button) => {
+          button.addEventListener("click", () => {
+            applyProduct(button.dataset.product);
+            syncChrome();
+            renderStoreDialog(stage);
+          });
+        });
+
+        dialog.querySelectorAll("[data-field]").forEach((field) => {
+          field.addEventListener("input", () => updateCampaignField(field));
+          field.addEventListener("change", () => updateCampaignField(field));
+        });
+
+        dialog.querySelector("[data-action='continue']").addEventListener("click", () => {
+          applyProduct(campaign.productCategoryId);
+          if (afterComplete) {
+            afterComplete();
+          } else {
+            completeStage(stage);
+          }
+        });
+      }
+
+      function renderReport() {
+        normalizeCampaign();
+        state.screen = "report";
+        state.paused = true;
+        const metrics = calculateMetrics(campaign);
+        const product = productById(campaign.productCategoryId);
+        const industry = industryById(campaign.industryId);
+        const insights = getInsights(campaign, metrics);
+        const studies = getCaseStudies(campaign, metrics);
+        const maxCpm = Math.max(...metrics.channelComparison.map((item) => item.cpm), 1);
+
+        dialog.className = "dialog report";
+        openOverlay();
+        dialog.innerHTML = `
+          <div class="dialog-header">
+            <span class="eyebrow">${campaign.audience} - ${industry.name}</span>
+            <h2>ROI Report</h2>
+            <p>${product.name}. ${campaign.quantity.toLocaleString()} units. Type: ${campaign.goal.toLowerCase()}. Audience: ${campaign.audience.toLowerCase()}.</p>
+          </div>
+          <div class="dialog-body">
+            <div class="dialog-actions">
+              <button class="secondary" type="button" data-action="pdf">Download PDF</button>
+              <button class="secondary" type="button" data-action="store">Edit Store</button>
+              <button class="primary" type="button" data-action="restart">Start Again</button>
+            </div>
+            <div class="metric-grid">
+              ${metricCard("Total Views", formatCompact(metrics.totalImpressions))}
+              ${metricCard("Cost Per 1K", `$${metrics.costPerThousandImpressions.toFixed(2)}`)}
+              ${metricCard("People Remember", `${metrics.brandRecallScore}%`)}
+              ${metricCard("Better Value", `${metrics.effectiveROI > 0 ? "+" : ""}${metrics.effectiveROI}%`)}
+            </div>
+            <div class="section-title">Why</div>
+            <div class="insights">
+              ${insights.map((insight) => `<div class="insight">${renderBold(insight)}</div>`).join("")}
+            </div>
+            <div class="section-title">Cost</div>
+            <div class="bar-card">
+              ${metrics.channelComparison
+                .map(
+                  (item) => `
+                    <div class="bar-row">
+                      <span>${item.name}</span>
+                      <span class="bar-track">
+                        <span class="bar-fill" style="width: ${(item.cpm / maxCpm) * 100}%; --bar-color: ${item.color}"></span>
+                      </span>
+                      <span>$${item.cpm.toFixed(2)}</span>
+                    </div>
+                  `,
+                )
+                .join("")}
+            </div>
+            <div class="section-title">Examples</div>
+            <div class="case-list">
+              ${studies
+                .map(
+                  (study) => `
+                    <div class="case-card">
+                      <strong>${study.title}</strong>
+                      <span>${study.result}</span>
+                      <p>${study.detail}</p>
+                    </div>
+                  `,
+                )
+                .join("")}
+            </div>
+          </div>
+        `;
+
+        dialog.querySelector("[data-action='restart']").addEventListener("click", startGame);
+        dialog.querySelector("[data-action='pdf']").addEventListener("click", () => {
+          downloadReportPDF(campaign, metrics, insights, studies);
+        });
+        dialog.querySelector("[data-action='store']").addEventListener("click", () => {
+          const storeStage =
+            state.stages.find((stage) => stage.id === "store") ||
+            createStages().find((stage) => stage.id === "store");
+          storeStage.done = false;
+          state.paused = true;
+          renderStoreDialog(storeStage, renderReport);
+        });
+        syncChrome();
+      }
+
+      function cleanReportText(text) {
+        return String(text || "").replace(/\*\*/g, "");
+      }
+
+      function drawPdfText(doc, text, x, y, options = {}) {
+        const maxWidth = options.maxWidth || 500;
+        const lineHeight = options.lineHeight || 16;
+        const lines = doc.splitTextToSize(cleanReportText(text), maxWidth);
+        doc.text(lines, x, y);
+        return y + lines.length * lineHeight;
+      }
+
+      function downloadReportPDF(input, metrics, insights, studies) {
+        const jsPDF = window.jspdf?.jsPDF;
+        if (!jsPDF) {
+          window.alert("PDF download is not ready yet. Please reload the page.");
+          return;
+        }
+
+        const product = productById(input.productCategoryId);
+        const industry = industryById(input.industryId);
+        const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "letter" });
+        const pageW = doc.internal.pageSize.getWidth();
+        const pageH = doc.internal.pageSize.getHeight();
+        const margin = 42;
+        const cardGap = 14;
+
+        const hexToRgb = (hex) => {
+          const clean = String(hex || "").replace("#", "");
+          const value = Number.parseInt(clean.length === 3 ? clean.replace(/(.)/g, "$1$1") : clean, 16);
+          if (Number.isNaN(value)) return [21, 152, 230];
+          return [(value >> 16) & 255, (value >> 8) & 255, value & 255];
+        };
+
+        const setFillHex = (hex) => {
+          const [r, g, b] = hexToRgb(hex);
+          doc.setFillColor(r, g, b);
+        };
+
+        doc.setFillColor(7, 12, 22);
+        doc.rect(0, 0, pageW, pageH, "F");
+        doc.setFillColor(246, 195, 74);
+        doc.rect(0, 0, pageW, 12, "F");
+
+        doc.setTextColor(246, 195, 74);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.text(`${input.audience.toUpperCase()} - ${industry.name.toUpperCase()}`, margin, 50);
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(34);
+        doc.text("ROI Report", margin, 88);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(12);
+        drawPdfText(
+          doc,
+          `${product.name}. ${input.quantity.toLocaleString()} units. Type: ${input.goal.toLowerCase()}. Audience: ${input.audience.toLowerCase()}.`,
+          margin,
+          116,
+          { maxWidth: pageW - margin * 2, lineHeight: 14 },
+        );
+
+        const cards = [
+          ["Total Views", formatCompact(metrics.totalImpressions)],
+          ["Cost Per 1K", `$${metrics.costPerThousandImpressions.toFixed(2)}`],
+          ["People Remember", `${metrics.brandRecallScore}%`],
+          ["Better Value", `${metrics.effectiveROI > 0 ? "+" : ""}${metrics.effectiveROI}%`],
+        ];
+        const metricY = 154;
+        const metricW = (pageW - margin * 2 - cardGap * 3) / 4;
+        cards.forEach((card, index) => {
+          const x = margin + index * (metricW + cardGap);
+          doc.setFillColor(17, 24, 39);
+          doc.rect(x, metricY, metricW, 66, "F");
+          doc.setDrawColor(65, 74, 88);
+          doc.rect(x, metricY, metricW, 66);
+          doc.setTextColor(170, 182, 199);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(9);
+          doc.text(card[0].toUpperCase(), x + 12, metricY + 20);
+          doc.setTextColor(246, 195, 74);
+          doc.setFontSize(24);
+          doc.text(card[1], x + 12, metricY + 50);
+        });
+
+        const leftX = margin;
+        const leftW = 350;
+        const rightX = leftX + leftW + 36;
+        const rightW = pageW - rightX - margin;
+        const sectionY = 260;
+
+        doc.setTextColor(246, 195, 74);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.text("WHY THIS WORKS", leftX, sectionY);
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        let insightY = sectionY + 30;
+        insights.slice(0, 3).forEach((insight) => {
+          doc.setFillColor(17, 24, 39);
+          doc.rect(leftX, insightY - 16, leftW, 40, "F");
+          doc.setFillColor(21, 152, 230);
+          doc.rect(leftX, insightY - 16, 4, 40, "F");
+          drawPdfText(doc, insight, leftX + 14, insightY + 5, { maxWidth: leftW - 28, lineHeight: 12 });
+          insightY += 52;
+        });
+
+        doc.setTextColor(246, 195, 74);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.text("COST", rightX, sectionY);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        const maxCpm = Math.max(...metrics.channelComparison.map((item) => item.cpm), 1);
+        let costY = sectionY + 30;
+        metrics.channelComparison.forEach((item) => {
+          doc.setTextColor(255, 255, 255);
+          doc.text(item.name, rightX, costY);
+          doc.setFillColor(230, 237, 245);
+          doc.rect(rightX + 88, costY - 8, rightW - 164, 9, "F");
+          setFillHex(item.color);
+          doc.rect(rightX + 88, costY - 8, (rightW - 164) * (item.cpm / maxCpm), 9, "F");
+          doc.setTextColor(255, 255, 255);
+          doc.text(`$${item.cpm.toFixed(2)}`, rightX + rightW - 54, costY);
+          costY += 22;
+        });
+
+        doc.setTextColor(246, 195, 74);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.text("EXAMPLES", margin, 462);
+
+        const exampleY = 486;
+        const exampleW = (pageW - margin * 2 - cardGap) / 2;
+        studies.slice(0, 2).forEach((study, index) => {
+          const x = margin + index * (exampleW + cardGap);
+          doc.setFillColor(17, 24, 39);
+          doc.rect(x, exampleY, exampleW, 78, "F");
+          doc.setTextColor(255, 255, 255);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(12);
+          doc.text(study.title, x + 14, exampleY + 22);
+          doc.setTextColor(126, 231, 135);
+          doc.setFontSize(10);
+          doc.text(study.result, x + 14, exampleY + 40);
+          doc.setTextColor(220, 230, 240);
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(10);
+          drawPdfText(doc, study.detail, x + 14, exampleY + 58, { maxWidth: exampleW - 28, lineHeight: 12 });
+        });
+
+        doc.setTextColor(130, 145, 165);
+        doc.setFontSize(9);
+        doc.text("Generated by Marketing ROI Calculator", margin, pageH - 24);
+        doc.save("roi-report.pdf");
+      }
+
+      function metricCard(label, value) {
+        return `
+          <div class="metric">
+            <span>${label}</span>
+            <strong>${value}</strong>
+          </div>
+        `;
+      }
+
+      function stageScreenY(stage) {
+        return PLAYER_Y - (stage.worldY - state.distance);
+      }
+
+      function nextPendingStage() {
+        return state.stages.find((stage) => !stage.done);
+      }
+
+      function updateGame(dt) {
+        if (state.screen !== "play" || state.paused) return;
+
+        const next = nextPendingStage();
+        if (next && state.mode === "auto") state.targetX = LANES[next.lane];
+
+        state.distance += state.speed * dt;
+        state.stepTick += dt * 8;
+        state.playerX += (state.targetX - state.playerX) * clamp(dt * 6, 0, 1);
+        state.hitPulse = Math.max(0, state.hitPulse - dt * 2);
+
+        const stage = nextPendingStage();
+        const triggerY = stage?.kind === "person" ? PLAYER_Y - 112 : PLAYER_Y - 18;
+        if (stage && stageScreenY(stage) >= triggerY) {
+          triggerStage(stage);
+        }
+      }
+
+      function clear() {
+        ctx.clearRect(0, 0, W, H);
+      }
+
+      function drawPixelText(text, x, y, size, color = "#fff", align = "center") {
+        ctx.save();
+        ctx.fillStyle = color;
+        ctx.font = `900 ${size}px ui-monospace, SFMono-Regular, Menlo, monospace`;
+        ctx.textAlign = align;
+        ctx.textBaseline = "middle";
+        ctx.shadowColor = "rgba(0,0,0,.55)";
+        ctx.shadowOffsetX = Math.max(1, size / 9);
+        ctx.shadowOffsetY = Math.max(1, size / 9);
+        ctx.shadowBlur = 0;
+        ctx.fillText(text, x, y);
+        ctx.restore();
+      }
+
+      function fillRect(x, y, w, h, color) {
+        ctx.fillStyle = color;
+        ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+      }
+
+      function strokeRect(x, y, w, h, color, lineWidth = 3) {
+        ctx.lineWidth = lineWidth;
+        ctx.strokeStyle = color;
+        ctx.strokeRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+      }
+
+      function drawShadow(x, y, w, h, alpha = 0.24) {
+        ctx.save();
+        ctx.fillStyle = `rgba(4, 12, 24, ${alpha})`;
+        ctx.beginPath();
+        ctx.ellipse(Math.round(x), Math.round(y), w, h, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawSmallText(text, x, y, size, color = "#fff", align = "center") {
+        ctx.save();
+        ctx.fillStyle = color;
+        ctx.font = `900 ${size}px ui-monospace, SFMono-Regular, Menlo, monospace`;
+        ctx.textAlign = align;
+        ctx.textBaseline = "middle";
+        ctx.fillText(text, Math.round(x), Math.round(y));
+        ctx.restore();
+      }
+
+      function drawRotatedPixelText(text, x, y, size, angle, color = "#fff", align = "center") {
+        ctx.save();
+        ctx.translate(Math.round(x), Math.round(y));
+        ctx.rotate(angle);
+        ctx.fillStyle = color;
+        ctx.font = `900 ${size}px ui-monospace, SFMono-Regular, Menlo, monospace`;
+        ctx.textAlign = align;
+        ctx.textBaseline = "middle";
+        ctx.shadowColor = "rgba(0,0,0,.7)";
+        ctx.shadowOffsetX = Math.max(1, size / 10);
+        ctx.shadowOffsetY = Math.max(1, size / 10);
+        ctx.shadowBlur = 0;
+        ctx.fillText(text, 0, 0);
+        ctx.restore();
+      }
+
+      function chamferPath(rect, cut = 14) {
+        ctx.beginPath();
+        ctx.moveTo(rect.x + cut, rect.y);
+        ctx.lineTo(rect.x + rect.w - cut, rect.y);
+        ctx.lineTo(rect.x + rect.w, rect.y + cut);
+        ctx.lineTo(rect.x + rect.w, rect.y + rect.h - cut);
+        ctx.lineTo(rect.x + rect.w - cut, rect.y + rect.h);
+        ctx.lineTo(rect.x + cut, rect.y + rect.h);
+        ctx.lineTo(rect.x, rect.y + rect.h - cut);
+        ctx.lineTo(rect.x, rect.y + cut);
+        ctx.closePath();
+      }
+
+      function drawProductTile(product, x, y, w = 36, h = 34) {
+        fillRect(x + 4, y + 5, w, h, "rgba(0,0,0,.22)");
+        fillRect(x, y, w, h, product.color);
+        strokeRect(x, y, w, h, "#0f172a", 2);
+        fillRect(x + 4, y + 4, w - 8, 6, "rgba(255,255,255,.36)");
+        drawSmallText(product.icon || product.name[0], x + w / 2, y + h / 2 + 3, 11);
+      }
+
+      function drawCharacterAsset(x, y, height = 168) {
+        if (!assets.character.complete || !assets.character.naturalWidth) {
+          drawFrontFacingWalker(x, y - 36, height / 92);
+          return false;
+        }
+
+        const ratio = assets.character.naturalWidth / assets.character.naturalHeight;
+        const width = Math.round(height * ratio);
+        ctx.save();
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(
+          assets.character,
+          Math.round(x - width / 2),
+          Math.round(y - height),
+          width,
+          height
+        );
+        ctx.restore();
+        return true;
+      }
+
+      function drawUrbanCell(col, row, x, y, scale = 2, width = 16, height = 16) {
+        if (!assets.urban.complete || !assets.urban.naturalWidth) return false;
+        ctx.save();
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(
+          assets.urban,
+          col * SHEET.tile,
+          row * SHEET.tile,
+          width,
+          height,
+          Math.round(x),
+          Math.round(y),
+          Math.round(width * scale),
+          Math.round(height * scale),
+        );
+        ctx.restore();
+        return true;
+      }
+
+      function drawUrbanCellRotated(col, row, x, y, scale = 2, angle = 0) {
+        if (!assets.urban.complete || !assets.urban.naturalWidth) return false;
+        const size = SHEET.tile * scale;
+        ctx.save();
+        ctx.translate(Math.round(x), Math.round(y));
+        ctx.rotate(angle);
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(
+          assets.urban,
+          col * SHEET.tile,
+          row * SHEET.tile,
+          SHEET.tile,
+          SHEET.tile,
+          -size / 2,
+          -size / 2,
+          size,
+          size,
+        );
+        ctx.restore();
+        return true;
+      }
+
+      function drawCharacterSprite(row, facing, x, y, scale = 4) {
+        const col = SHEET.characterCol + facing;
+        return drawUrbanCell(col, row, x - (SHEET.tile * scale) / 2, y - SHEET.tile * scale, scale);
+      }
+
+      function characterFrame(offset = 0) {
+        return Math.abs(Math.floor(state.stepTick + offset)) % 3;
+      }
+
+      function characterRow(groupStart, offset = 0) {
+        return groupStart + characterFrame(offset);
+      }
+
+      function drawTiledUrbanRect(x, y, w, h, tileChoices, scale = 2) {
+        const tileSize = SHEET.tile * scale;
+        for (let ty = y; ty < y + h; ty += tileSize) {
+          for (let tx = x; tx < x + w; tx += tileSize) {
+            const index = Math.abs(Math.floor(tx / tileSize) + Math.floor(ty / tileSize)) % tileChoices.length;
+            const tile = tileChoices[index];
+            if (!drawUrbanCell(tile[0], tile[1], tx, ty, scale)) {
+              fillRect(tx, ty, tileSize, tileSize, "#d9d3c4");
+            }
+          }
+        }
+      }
+
+      function drawStart() {
+        clear();
+        drawIntroBackdrop();
+        fillRect(50, 180, 350, 5, "#f15b4a");
+        drawPixelText("Marketing ROI", W / 2, 250, 31, "#ffffff");
+        drawPixelText("Calculator", W / 2, 302, 34, "#f15b4a");
+        fillRect(92, 338, 266, 3, "#ffffff");
+        wrapPixelText("Answer a few quick questions. Get your report in 30 seconds.", W / 2, 386, 320, 16, "#dbeafe");
+        drawButton(START_BUTTON, "Start");
+        drawSmallText("Enter or tap to start", W / 2, 698, 10, "#91a8b8");
+      }
+
+      function drawIntroBackdrop() {
+        const sky = ctx.createLinearGradient(0, 0, 0, H);
+        sky.addColorStop(0, "#030712");
+        sky.addColorStop(0.5, "#050505");
+        sky.addColorStop(1, "#030712");
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, W, H);
+      }
+
+      function drawPoster() {
+        const poster = { x: 42, y: 32, w: 366, h: 430 };
+        const art = { x: poster.x + 18, y: poster.y + 18, w: poster.w - 36, h: 250 };
+        fillRect(poster.x - 5, poster.y - 5, poster.w + 10, poster.h + 10, "#020202");
+        fillRect(poster.x, poster.y, poster.w, poster.h, "#0a0a0a");
+
+        fillRect(art.x, art.y, art.w, art.h, "#8fd8f0");
+        fillRect(art.x, art.y + art.h - 52, art.w, 52, "#5a8f45");
+        fillRect(art.x, art.y + art.h - 38, art.w, 38, "#2f3438");
+        fillRect(art.x + 92, art.y, art.w - 184, art.h, "#cfc1b0");
+        fillRect(art.x + 102, art.y, 3, art.h, "#8f8278");
+        fillRect(art.x + art.w - 105, art.y, 3, art.h, "#8f8278");
+
+        for (let y = art.y + 10; y < art.y + art.h; y += 42) {
+          fillRect(art.x + 96, y, art.w - 192, 2, "rgba(255,255,255,.32)");
+        }
+
+        fillRect(art.x + 14, art.y + 34, 74, 100, "#e8e2d4");
+        fillRect(art.x + 10, art.y + 26, 82, 18, "#f15b4a");
+        drawSmallText("STORE", art.x + 51, art.y + 39, 9, "#fff7e6");
+        fillRect(art.x + 28, art.y + 62, 42, 32, "#23415f");
+        fillRect(art.x + 34, art.y + 98, 30, 36, "#2b1c13");
+
+        fillRect(art.x + art.w - 86, art.y + 34, 72, 104, "#f7f0df");
+        fillRect(art.x + art.w - 92, art.y + 26, 84, 20, "#2f80c0");
+        drawSmallText("ROI", art.x + art.w - 50, art.y + 40, 10, "#ffffff");
+        fillRect(art.x + art.w - 74, art.y + 62, 48, 30, "#173550");
+        fillRect(art.x + art.w - 68, art.y + 98, 36, 40, "#25415c");
+
+        PRODUCTS.slice(0, 4).forEach((product, index) => {
+          const px = art.x + 112 + index * 32;
+          drawProductTile(product, px, art.y + 28 + (index % 2) * 12, 25, 24);
+        });
+
+        drawShadow(art.x + art.w / 2, art.y + 222, 34, 8, 0.22);
+        drawCharacterAsset(art.x + art.w / 2, art.y + 216, 164);
+
+        fillRect(poster.x + 28, poster.y + 312, poster.w - 56, 5, "#f15b4a");
+        drawPixelText("Marketing ROI", W / 2, poster.y + 354, 24, "#ffffff");
+        drawPixelText("Calculator", W / 2, poster.y + 392, 26, "#f15b4a");
+      }
+
+      function drawDiagonalHeroWalker(x, y, scale = 1) {
+        const b = (bx, by, bw, bh, color) => fillRect(bx * scale, by * scale, bw * scale, bh * scale, color);
+        ctx.save();
+        ctx.translate(Math.round(x), Math.round(y));
+        ctx.rotate(-0.18);
+        b(-76, -92, 72, 5, "#0d8ea1");
+        b(-82, -74, 62, 5, "#0d8ea1");
+        b(-98, -38, 82, 6, "#f6c34a");
+        b(-100, -20, 66, 5, "#f6c34a");
+        b(-72, -80, 52, 16, "#d21f46");
+        b(-52, -92, 68, 14, "#d21f46");
+        b(-45, -62, 58, 48, "#8b4a25");
+        b(13, -48, 13, 36, "#a85b31");
+        b(-30, -42, 10, 13, "#0a0a0a");
+        b(4, -40, 11, 14, "#0a0a0a");
+        b(-12, -10, 16, 15, "#111111");
+        b(-35, 2, 86, 46, "#f7df13");
+        b(-70, 12, 42, 14, "#f7df13");
+        b(42, 4, 32, 18, "#8b4a25");
+        b(-18, 48, 45, 80, "#1d83c6");
+        b(25, 62, 62, 38, "#7fd7f2");
+        b(-52, 56, 44, 94, "#1d83c6");
+        b(-68, 148, 31, 13, "#0f172a");
+        b(72, 98, 31, 13, "#0f172a");
+        ctx.restore();
+      }
+
+      function drawRules() {
+        clear();
+        fillRect(0, 0, W, H, "#050505");
+        drawMiniWalker(W / 2, 104, 1.1);
+        drawPixelText("How It Works:", W / 2, 218, 22, "#ffffff");
+        drawRuleBadge(W / 2, 330, state.ruleIndex + 1);
+        wrapPixelText(RULES[state.ruleIndex], W / 2, 430, 318, 18, "#ffffff");
+        drawButton(RULE_BUTTON, state.ruleIndex === RULES.length - 1 ? "Start" : "Next");
+      }
+
+      function drawRuleBadge(x, y, value) {
+        fillRect(x - 34, y - 34, 68, 68, "#ffffff");
+        fillRect(x - 26, y - 26, 52, 52, "#050505");
+        drawPixelText(String(value), x, y + 2, 26, "#f6c34a");
+      }
+
+      function wrapPixelText(text, x, y, maxWidth, size, color = "#fff") {
+        const words = text.split(" ");
+        const lines = [];
+        let line = "";
+        ctx.save();
+        ctx.font = `900 ${size}px ui-monospace, SFMono-Regular, Menlo, monospace`;
+        words.forEach((word) => {
+          const next = line ? `${line} ${word}` : word;
+          if (ctx.measureText(next).width > maxWidth && line) {
+            lines.push(line);
+            line = word;
+          } else {
+            line = next;
+          }
+        });
+        if (line) lines.push(line);
+        ctx.restore();
+        lines.forEach((lineText, index) => {
+          drawPixelText(lineText, x, y + index * (size + 12), size, color);
+        });
+      }
+
+      function drawButton(rect, label) {
+        ctx.save();
+        ctx.fillStyle = "rgba(0,0,0,.45)";
+        chamferPath({ x: rect.x + 7, y: rect.y + 7, w: rect.w, h: rect.h }, 18);
+        ctx.fill();
+        ctx.fillStyle = "#050505";
+        chamferPath(rect, 18);
+        ctx.fill();
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = "#fff";
+        chamferPath(rect, 18);
+        ctx.stroke();
+        ctx.restore();
+        fillRect(rect.x + 18, rect.y + 8, rect.w - 36, 5, "rgba(255,255,255,.24)");
+        drawPixelText(label, rect.x + rect.w / 2, rect.y + rect.h / 2 + 1, 21, "#fff");
+      }
+
+      function drawGame() {
+        clear();
+        drawWorld();
+        drawStages();
+        drawPlayer();
+        drawProgressMeter();
+      }
+
+      function drawWorld() {
+        const sidewalk = { x: 66, w: 296 };
+        const scroll = state.distance % 96;
+        fillRect(0, 0, W, H, "#87aef0");
+        drawLeftGutter(scroll);
+        drawRightWall(scroll);
+        drawSidewalkCorridor(sidewalk.x, sidewalk.w, scroll);
+      }
+
+      function drawLeftGutter(scroll) {
+        fillRect(0, 0, 66, H, "#6f6c64");
+        fillRect(54, 0, 12, H, "#2a2c2f");
+        fillRect(62, 0, 4, H, "#1f2022");
+        for (let y = scroll - 96; y < H + 96; y += 96) {
+          fillRect(12, y + 18, 10, 42, "#5d5b55");
+          fillRect(30, y + 64, 14, 58, "#5b5953");
+          fillRect(56, y + 8, 5, 86, "#3e4040");
+          fillRect(6, y + 84, 34, 5, "#77736a");
+          fillRect(18, y + 36, 4, 44, "#4d4c48");
+        }
+      }
+
+      function drawRightWall(scroll) {
+        fillRect(362, 0, 88, H, "#8b5b32");
+        fillRect(362, 0, 10, H, "#26282b");
+        fillRect(372, 0, 6, H, "#18191b");
+        const brickScroll = state.distance % 24;
+        for (let y = brickScroll - 24; y < H + 48; y += 24) {
+          fillRect(378, y, 72, 10, y % 48 ? "#a36f42" : "#7b4d2c");
+          fillRect(378, y + 12, 72, 5, "#5e3821");
+          fillRect(384, y + 6, 20, 4, "rgba(255,255,255,.12)");
+        }
+        const signScroll = state.distance % 430;
+        for (let y = signScroll - 430; y < H + 430; y += 430) {
+          fillRect(386, y, 44, 138, "#f6c34a");
+          fillRect(392, y + 10, 32, 118, "#ef233c");
+          fillRect(398, y + 34, 20, 8, "#fff0dc");
+          fillRect(398, y + 54, 20, 8, "#fff0dc");
+          fillRect(398, y + 74, 20, 8, "#fff0dc");
+          fillRect(430, y + 18, 12, 104, "#2c1f16");
+        }
+        drawRightFireEscape(392, (state.distance % 112) - 112);
+      }
+
+      function drawSidewalkCorridor(x, w, scroll) {
+        fillRect(x - 8, 0, 8, H, "#2b2c2d");
+        fillRect(x + w, 0, 8, H, "#2b2c2d");
+        fillRect(x, 0, w, H, "#cdbfb0");
+        for (let y = scroll - 96; y < H + 96; y += 96) {
+          fillRect(x, y, w, 4, "#b7aa9f");
+          fillRect(x + Math.round(w / 2), y, 4, 96, "#b7aa9f");
+          fillRect(x + 18, y + 48, Math.round(w / 2) - 30, 3, "#d8cec3");
+          fillRect(x + Math.round(w / 2) + 18, y + 48, Math.round(w / 2) - 30, 3, "#d8cec3");
+          fillRect(x + 36, y + 28, 20, 8, "rgba(255,255,255,.14)");
+          fillRect(x + w - 74, y + 62, 26, 9, "rgba(118,96,82,.12)");
+        }
+        for (let y = scroll - 166; y < H + 192; y += 192) {
+          fillRect(x + w - 72, y, 26, 12, "rgba(255,255,255,.13)");
+          fillRect(x + 72, y + 84, 36, 10, "rgba(119,96,78,.11)");
+          fillRect(x + 152, y + 140, 8, 8, "#9a7b54");
+        }
+      }
+
+      function drawRightFireEscape(x, y) {
+        for (let row = 0; row < 4; row += 1) {
+          const by = y + row * 112;
+          fillRect(x, by, 44, 6, "#201b18");
+          fillRect(x + 4, by + 28, 36, 5, "#201b18");
+          fillRect(x + 5, by, 5, 66, "#201b18");
+          fillRect(x + 34, by, 5, 66, "#201b18");
+          for (let i = 0; i < 5; i += 1) {
+            fillRect(x + 12 + i * 5, by + 8 + i * 7, 4, 30, "#201b18");
+          }
+        }
+      }
+
+      function drawStages() {
+        const stage = nextPendingStage();
+        if (!stage) return;
+        const y = stageScreenY(stage);
+        if (y < -120 || y > H + 120) return;
+        const x = LANES[stage.lane];
+        if (stage.kind === "store") {
+          drawStorefront(x, y, stage);
+        } else if (stage.kind === "finish") {
+          drawFinish(x, y);
+        } else {
+          drawProspect(x, y, stage);
+        }
+      }
+
+      function drawProspect(x, y, stage) {
+        const rows = [13, 3, 16];
+        drawShadow(x, y + 75, 34, 10, 0.22);
+        if (!drawCharacterSprite(rows[stage.lane] || 0, 1, x, y + 48, 4)) {
+          fillRect(x - 25, y - 66, 50, 16, "#1e293b");
+          fillRect(x - 19, y - 76, 38, 34, "#f0b58b");
+          fillRect(x - 25, y - 38, 50, 62, "#13b7a6");
+        }
+      }
+
+      function drawStorefront(x, y) {
+        drawShadow(W / 2, y + 72, 150, 18, 0.22);
+        fillRect(52, y - 122, 346, 160, "#08395f");
+        strokeRect(52, y - 122, 346, 160, "#0f172a", 4);
+        fillRect(66, y - 104, 318, 34, "#f6c34a");
+        fillRect(66, y - 70, 318, 10, "#f15b4a");
+        drawSmallText("STORE", W / 2, y - 86, 15, "#111827");
+        fillRect(78, y - 48, 126, 58, "#dff8ff");
+        fillRect(246, y - 48, 126, 58, "#dff8ff");
+        strokeRect(78, y - 48, 126, 58, "#0f172a", 2);
+        strokeRect(246, y - 48, 126, 58, "#0f172a", 2);
+        PRODUCTS.slice(0, 6).forEach((product, index) => {
+          const px = index < 3 ? 92 + index * 36 : 260 + (index - 3) * 36;
+          drawProductTile(product, px, y - 34, 27, 25);
+        });
+        fillRect(205, y - 16, 40, 54, "#0f172a");
+        fillRect(212, y - 8, 26, 46, "#8fd2ff");
+      }
+
+      function drawFinish(x, y) {
+        drawShadow(x, y + 70, 78, 14, 0.24);
+        fillRect(x - 88, y - 82, 176, 118, "#ffffff");
+        strokeRect(x - 88, y - 82, 176, 118, "#0f172a", 4);
+        fillRect(x - 70, y - 60, 132, 16, "#1598e6");
+        fillRect(x - 70, y - 30, 94, 12, "#13b7a6");
+        fillRect(x - 70, y - 8, 124, 12, "#f15b4a");
+        fillRect(x + 46, y - 34, 18, 38, "#f6c34a");
+        fillRect(x - 68, y + 20, 136, 8, "#d8e0eb");
+        drawPixelText("ROI REPORT", x, y + 54, 15, "#0f172a");
+      }
+
+      function drawPlayer() {
+        const x = state.playerX;
+        const y = PLAYER_Y;
+        drawShadow(x, y + 58, 23, 7, 0.28);
+
+        if (state.hitPulse > 0) {
+          strokeRect(x - 30, y - 72, 60, 92, `rgba(246, 195, 74, ${state.hitPulse})`, 4);
+        }
+
+        if (!drawCharacterSprite(characterRow(6), 2, x, y + 48, 4)) {
+          drawBackFacingWalker(x, y, 1);
+        }
+      }
+
+      function drawMiniWalker(x, y, scale = 1) {
+        drawShadow(x, y + 42 * scale, 22 * scale, 6 * scale, 0.22);
+        if (!drawCharacterAsset(x, y + 50 * scale, 116 * scale)) {
+          drawFrontFacingWalker(x, y, scale);
+        }
+      }
+
+      function px(x, y, w, h, color, scale = 1) {
+        fillRect(x * scale, y * scale, w * scale, h * scale, color);
+      }
+
+      function drawBackFacingWalker(x, y, scale = 1) {
+        const walk = Math.sin(state.stepTick);
+        const leg = walk > 0 ? 3 : -3;
+        ctx.save();
+        ctx.translate(Math.round(x), Math.round(y));
+        px(-16, -58, 32, 16, "#4a1f08", scale);
+        px(-12, -42, 24, 18, "#ffc1b8", scale);
+        px(-16, -28, 32, 34, "#4aa3ff", scale);
+        px(-6, -26, 12, 26, "#4a1f08", scale);
+        px(-24, -24, 8, 32, "#ffc1b8", scale);
+        px(16, -24, 8, 32, "#ffc1b8", scale);
+        px(-10, 4, 9, 34 + leg, "#050505", scale);
+        px(2, 4, 9, 34 - leg, "#050505", scale);
+        px(-16, 34 + leg, 15, 6, "#050505", scale);
+        px(2, 34 - leg, 15, 6, "#050505", scale);
+        ctx.restore();
+      }
+
+      function drawFrontFacingWalker(x, y, scale = 1) {
+        ctx.save();
+        ctx.translate(Math.round(x), Math.round(y));
+        px(-16, -58, 32, 18, "#4a1f08", scale);
+        px(-12, -44, 24, 22, "#ffc1b8", scale);
+        px(-16, -28, 32, 34, "#4aa3ff", scale);
+        px(-6, -26, 12, 26, "#4a1f08", scale);
+        px(-24, -24, 8, 32, "#ffc1b8", scale);
+        px(16, -24, 8, 32, "#ffc1b8", scale);
+        px(-6, -36, 3, 4, "#050505", scale);
+        px(6, -36, 3, 4, "#050505", scale);
+        px(-10, 4, 9, 34, "#050505", scale);
+        px(2, 4, 9, 34, "#050505", scale);
+        px(-16, 34, 15, 6, "#050505", scale);
+        px(2, 34, 15, 6, "#050505", scale);
+        ctx.restore();
+      }
+
+      function drawProgressMeter() {
+        if (state.screen !== "play") return;
+        const total = 2800;
+        const progress = clamp(state.distance / total, 0, 1);
+        fillRect(62, 764, 326, 16, "rgba(5,26,47,.78)");
+        strokeRect(62, 764, 326, 16, "rgba(255,255,255,.65)", 2);
+        fillRect(68, 770, 314 * progress, 5, "#f6c34a");
+        [0.18, 0.34, 0.49, 0.66, 0.84].forEach((mark) => {
+          fillRect(68 + 314 * mark, 767, 3, 10, "#ffffff");
+        });
+      }
+
+      function draw() {
+        if (state.screen === "start") drawStart();
+        if (state.screen === "rules") drawRules();
+        if (state.screen === "play") drawGame();
+      }
+
+      function loop(time) {
+        const dt = Math.min(0.05, (time - state.lastTime) / 1000 || 0);
+        state.lastTime = time;
+        updateGame(dt);
+        draw();
+        requestAnimationFrame(loop);
+      }
+
+      function canvasPoint(event) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = event.clientX ?? event.touches?.[0]?.clientX ?? 0;
+        const clientY = event.clientY ?? event.touches?.[0]?.clientY ?? 0;
+        return {
+          x: ((clientX - rect.left) / rect.width) * W,
+          y: ((clientY - rect.top) / rect.height) * H,
+        };
+      }
+
+      function inRect(point, rect) {
+        return (
+          point.x >= rect.x &&
+          point.x <= rect.x + rect.w &&
+          point.y >= rect.y &&
+          point.y <= rect.y + rect.h
+        );
+      }
+
+      function moveLane(direction) {
+        const index = LANES.reduce(
+          (closest, lane, currentIndex) =>
+            Math.abs(lane - state.targetX) < Math.abs(LANES[closest] - state.targetX)
+              ? currentIndex
+              : closest,
+          0,
+        );
+        const nextIndex = clamp(index + direction, 0, LANES.length - 1);
+        state.targetX = LANES[nextIndex];
+      }
+
+      canvas.addEventListener("pointerdown", (event) => {
+        const point = canvasPoint(event);
+        if (state.screen === "start" && inRect(point, START_BUTTON)) {
+          renderStarterSetup();
+          playBlip(520, 0.05);
+          return;
+        }
+        if (state.screen === "rules" && inRect(point, RULE_BUTTON)) {
+          advanceRules();
+          return;
+        }
+        if (state.screen === "play" && state.mode === "manual" && !state.paused) {
+          const nearest = LANES.reduce((closest, lane) =>
+            Math.abs(lane - point.x) < Math.abs(closest - point.x) ? lane : closest,
+          );
+          state.targetX = nearest;
+        }
       });
 
       window.addEventListener("keydown", (event) => {
-        if (event.code === "Space" || event.code === "Enter") {
-          event.preventDefault();
-          dispatchTrain();
-        } else if (event.key === "m" || event.key === "M") {
-          muted = !muted;
-          syncMuteButton();
+        if (overlay.classList.contains("open")) return;
+        if (event.key === "Enter" && state.screen === "start") {
+          renderStarterSetup();
+        } else if (event.key === "Enter" && state.screen === "rules") {
+          advanceRules();
+        } else if (state.screen === "play" && state.mode === "manual" && !state.paused) {
+          if (event.key === "ArrowLeft") moveLane(-1);
+          if (event.key === "ArrowRight") moveLane(1);
         }
       });
 
-      syncMuteButton();
-      updateCounter();
+      modeButtons.forEach((button) => {
+        button.addEventListener("click", () => setMode(button.dataset.mode));
+      });
+
+      soundButton.addEventListener("click", () => {
+        state.muted = !state.muted;
+        localStorage.setItem("ppai-roi-walk:muted", state.muted ? "1" : "0");
+        if (!state.muted) playBlip(680, 0.05);
+        syncChrome();
+      });
+
+      state.stages = createStages();
+      syncChrome();
+      requestAnimationFrame(loop);
     </script>
   </body>
 </html>

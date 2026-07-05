@@ -1063,7 +1063,6 @@
         paused: false,
         stages: [],
         activeStage: null,
-        hitPulse: 0,
       };
 
       const campaign = {
@@ -1341,28 +1340,36 @@
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         if (!AudioContext) return null;
         if (!audioContext) audioContext = new AudioContext();
-        if (audioContext.state === "suspended") audioContext.resume();
         return audioContext;
       }
 
-      function playBlip(frequency = 420, duration = 0.08) {
+      function runAudio(callback) {
         if (state.muted) return;
         const audio = getAudioContext();
         if (!audio) return;
-        const osc = audio.createOscillator();
-        const gain = audio.createGain();
-        osc.frequency.value = frequency;
-        osc.type = "square";
-        gain.gain.value = 0.035;
-        osc.connect(gain);
-        gain.connect(audio.destination);
-        osc.start();
-        osc.stop(audio.currentTime + duration);
+        const run = () => callback(audio);
+        if (audio.state === "suspended") {
+          audio.resume().then(run).catch(() => {});
+          return;
+        }
+        run();
       }
 
-      function playMusicTone(frequency, startTime, duration, gainValue = 0.018, type = "sine") {
-        const audio = getAudioContext();
-        if (!audio) return;
+      function playBlip(frequency = 420, duration = 0.08) {
+        runAudio((audio) => {
+          const osc = audio.createOscillator();
+          const gain = audio.createGain();
+          osc.frequency.value = frequency;
+          osc.type = "square";
+          gain.gain.value = 0.035;
+          osc.connect(gain);
+          gain.connect(audio.destination);
+          osc.start();
+          osc.stop(audio.currentTime + duration);
+        });
+      }
+
+      function playMusicTone(audio, frequency, startTime, duration, gainValue = 0.018, type = "sine") {
         const osc = audio.createOscillator();
         const gain = audio.createGain();
         osc.type = type;
@@ -1376,25 +1383,33 @@
         osc.stop(startTime + duration + 0.04);
       }
 
-      function scheduleMusicBar() {
+      function scheduleMusicBar(activeAudio) {
         if (state.muted || state.screen === "start") return;
-        const audio = getAudioContext();
-        if (!audio) return;
-        const start = audio.currentTime + 0.05;
-        const melody = [392, 440, 493.88, 440, 392, 329.63, 349.23, 392];
-        const bass = [196, 220, 164.81, 174.61];
-        melody.forEach((note, index) => {
-          playMusicTone(note, start + index * 0.38, 0.28, 0.012, "triangle");
-        });
-        bass.forEach((note, index) => {
-          playMusicTone(note, start + index * 0.76, 0.64, 0.01, "sine");
-        });
+        const schedule = (audio) => {
+          const start = audio.currentTime + 0.05;
+          const melody = [392, 440, 493.88, 440, 392, 329.63, 349.23, 392];
+          const bass = [196, 220, 164.81, 174.61];
+          melody.forEach((note, index) => {
+            playMusicTone(audio, note, start + index * 0.38, 0.28, 0.028, "triangle");
+          });
+          bass.forEach((note, index) => {
+            playMusicTone(audio, note, start + index * 0.76, 0.64, 0.018, "sine");
+          });
+        };
+        if (activeAudio) {
+          schedule(activeAudio);
+          return;
+        }
+        runAudio(schedule);
       }
 
       function startBackgroundMusic() {
-        if (state.muted || musicTimer) return;
-        scheduleMusicBar();
-        musicTimer = window.setInterval(scheduleMusicBar, 3040);
+        if (state.muted || musicTimer || state.screen === "start") return;
+        runAudio((audio) => {
+          if (state.muted || musicTimer || state.screen === "start") return;
+          scheduleMusicBar(audio);
+          musicTimer = window.setInterval(() => scheduleMusicBar(), 3040);
+        });
       }
 
       function stopBackgroundMusic() {
@@ -1411,7 +1426,6 @@
         state.ruleIndex = 0;
         state.paused = false;
         state.activeStage = null;
-        state.hitPulse = 0;
         state.stages = createStages();
         closeOverlay();
         syncChrome();
@@ -1425,6 +1439,7 @@
         state.screen = "rules";
         state.ruleIndex = 0;
         syncChrome();
+        startBackgroundMusic();
         playBlip(520, 0.05);
       }
 
@@ -1458,7 +1473,6 @@
       function triggerStage(stage) {
         state.paused = true;
         state.activeStage = stage;
-        state.hitPulse = 1;
         playBlip(stage.kind === "store" ? 360 : 620, 0.09);
 
         if (stage.kind === "finish") {
@@ -2063,7 +2077,6 @@
         state.distance += state.speed * dt;
         state.stepTick += dt * 8;
         state.playerX += (state.targetX - state.playerX) * clamp(dt * 6, 0, 1);
-        state.hitPulse = Math.max(0, state.hitPulse - dt * 2);
 
         const stage = nextPendingStage();
         const triggerY = stage?.kind === "person" ? PLAYER_Y - 112 : PLAYER_Y - 18;
@@ -2534,10 +2547,6 @@
         const x = state.playerX;
         const y = PLAYER_Y;
         drawShadow(x, y + 58, 23, 7, 0.28);
-
-        if (state.hitPulse > 0) {
-          strokeRect(x - 30, y - 72, 60, 92, `rgba(246, 195, 74, ${state.hitPulse})`, 4);
-        }
 
         if (!drawCharacterSprite(characterRow(6), 2, x, y + 48, 4)) {
           drawBackFacingWalker(x, y, 1);
